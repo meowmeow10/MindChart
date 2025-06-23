@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMapper - Interactive Mind Mapping Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landing-page" class="page">
+        <div class="landing-container">
+            <h1>MindMapper</h1>
+            <p class="subtitle">Create, organize, and visualize your ideas</p>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Interactive Mind Maps</h3>
+                    <p>Create and connect ideas with intuitive drag-and-drop functionality</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💾</div>
+                    <h3>Save & Load</h3>
+                    <p>Export your mind maps as XML files and load them anytime</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Zoom & Pan</h3>
+                    <p>Navigate large mind maps with smooth zoom and pan controls</p>
+                </div>
+            </div>
+            <button id="go-to-app" class="primary-btn">Start Mind Mapping</button>
+        </div>
+    </div>
+
+    <!-- Mind Map Application -->
+    <div id="app-page" class="page hidden">
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button id="new-mindmap" class="btn">New</button>
+                <button id="save-mindmap" class="btn">Save XML</button>
+                <input type="file" id="load-mindmap" accept=".xml" style="display: none;">
+                <button id="load-btn" class="btn">Load XML</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="add-node" class="btn">Add Node</button>
+                <button id="delete-node" class="btn" disabled>Delete</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="zoom-in" class="btn">Zoom In</button>
+                <button id="zoom-out" class="btn">Zoom Out</button>
+                <button id="reset-view" class="btn">Reset View</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="back-to-home" class="btn secondary">Back to Home</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <svg id="mindmap-canvas" width="100%" height="100%">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                            refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+                    </marker>
+                </defs>
+                <g id="canvas-group">
+                    <!-- Mind map content will be rendered here -->
+                </g>
+            </svg>
+        </div>
+
+        <div class="status-bar">
+            <span id="status-text">Ready</span>
+            <span id="zoom-level">100%</span>
+        </div>
+    </div>
+
+    <!-- Node Editor Modal -->
+    <div id="node-editor" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Node</h3>
+            <textarea id="node-text" placeholder="Enter node text..."></textarea>
+            <div class="color-picker">
+                <label>Node Color:</label>
+                <input type="color" id="node-color" value="#e3f2fd">
+            </div>
+            <div class="modal-buttons">
+                <button id="save-node" class="btn primary">Save</button>
+                <button id="cancel-edit" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="xmlhandler.js"></script>
+    <script src="mindmap.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
