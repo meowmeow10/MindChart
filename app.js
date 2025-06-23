@@ -24,6 +24,15 @@ class MindMapApp {
             this.showLandingPage();
         });
 
+        // Documentation button event handlers
+        document.getElementById('docs-btn-home').addEventListener('click', () => {
+            window.open('https://mindchart.gitbook.io/mindchart/', '_blank');
+        });
+
+        document.getElementById('docs-btn-app').addEventListener('click', () => {
+            window.open('https://mindchart.gitbook.io/mindchart/', '_blank');
+        });
+
         // Mind map controls
         document.getElementById('new-mindmap').addEventListener('click', () => {
             this.newMindMap();

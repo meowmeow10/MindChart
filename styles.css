@@ -76,21 +76,40 @@ body {
 }
 
 .primary-btn {
-    background: #ff6b6b;
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 15px 30px;
     border-radius: 50px;
+    font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    margin-top: 1rem;
 }
 
 .primary-btn:hover {
-    background: #ff5252;
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
 }
 
 /* App Page Styles */
@@ -738,20 +757,20 @@ body {
     .landing-container h1 {
         font-size: 2.5rem;
     }
-    
+
     .subtitle {
         font-size: 1.2rem;
     }
-    
+
     .features {
         grid-template-columns: 1fr;
     }
-    
+
     .toolbar {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .toolbar-group {
         flex-wrap: wrap;
     }
