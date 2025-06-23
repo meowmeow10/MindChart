@@ -937,8 +937,10 @@ class MindMapApp {
 
     handleLogin() {
         if (this.isAuthenticated) {
+            console.log('Logging out...');
             window.location.href = '/api/logout';
         } else {
+            console.log('Logging in...');
             window.location.href = '/api/login';
         }
     }

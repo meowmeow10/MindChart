@@ -84,59 +84,98 @@ async function setupAuth(app) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  const { client, Strategy } = await loadOpenIdClient();
-  const config = await getOidcConfig();
+  try {
+    const { client, Strategy } = await loadOpenIdClient();
+    
+    // Only setup real auth if we have the required environment
+    if (process.env.REPL_ID && process.env.REPLIT_DOMAINS && Strategy.name !== 'MockStrategy') {
+      const config = await getOidcConfig();
 
-  const verify = async (tokens, verified) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
-  };
+      const verify = async (tokens, verified) => {
+        const user = {};
+        updateUserSession(user, tokens);
+        await upsertUser(tokens.claims());
+        verified(null, user);
+      };
 
-  // Handle case where REPLIT_DOMAINS might not be set in development
-  const domains = process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(",") : ['localhost:5000'];
+      const domains = process.env.REPLIT_DOMAINS.split(",");
 
-  for (const domain of domains) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-  }
+      for (const domain of domains) {
+        const strategy = new Strategy(
+          {
+            name: `replitauth:${domain}`,
+            config,
+            scope: "openid email profile offline_access",
+            callbackURL: `https://${domain}/api/callback`,
+          },
+          verify,
+        );
+        passport.use(strategy);
+      }
 
-  passport.serializeUser((user, cb) => cb(null, user));
-  passport.deserializeUser((user, cb) => cb(null, user));
+      app.get("/api/login", (req, res, next) => {
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      });
 
-  app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
-  });
+      app.get("/api/callback", (req, res, next) => {
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          successReturnToOrRedirect: "/",
+          failureRedirect: "/api/login",
+        })(req, res, next);
+      });
 
-  app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
-    })(req, res, next);
-  });
+      app.get("/api/logout", (req, res) => {
+        req.logout(() => {
+          res.redirect(
+            client.buildEndSessionUrl(config, {
+              client_id: process.env.REPL_ID,
+              post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+            }).href
+          );
+        });
+      });
+    } else {
+      // Demo mode - simplified auth for development
+      app.get("/api/login", (req, res) => {
+        req.session.user = {
+          id: 'demo-user',
+          email: 'demo@example.com',
+          firstName: 'Demo',
+          lastName: 'User'
+        };
+        res.redirect('/');
+      });
 
-  app.get("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID || 'fallback-client-id',
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
+      app.get("/api/logout", (req, res) => {
+        req.session.destroy();
+        res.redirect('/');
+      });
+    }
+
+    passport.serializeUser((user, cb) => cb(null, user));
+    passport.deserializeUser((user, cb) => cb(null, user));
+
+  } catch (error) {
+    console.error('Auth setup error:', error);
+    // Fallback to demo mode
+    app.get("/api/login", (req, res) => {
+      req.session.user = {
+        id: 'demo-user-' + Date.now(),
+        email: 'demo@example.com',
+        firstName: 'Demo',
+        lastName: 'User'
+      };
+      res.redirect('/');
     });
-  });
+
+    app.get("/api/logout", (req, res) => {
+      req.session.destroy();
+      res.redirect('/');
+    });
+  }
 }
 
 const isAuthenticated = async (req, res, next) => {

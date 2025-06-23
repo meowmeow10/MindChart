@@ -24,11 +24,20 @@ setupAuth(app).then(() => {
 });
 
 // API Routes
-app.get('/api/auth/user', isAuthenticated, async (req, res) => {
+app.get('/api/auth/user', async (req, res) => {
   try {
-    const userId = req.user.claims.sub;
-    const user = await storage.getUser(userId);
-    res.json(user);
+    // Check for session user (demo mode) or authenticated user
+    if (req.session && req.session.user) {
+      return res.json(req.session.user);
+    }
+    
+    if (req.user && req.user.claims) {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      return res.json(user);
+    }
+    
+    res.status(401).json({ message: "Not authenticated" });
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ message: "Failed to fetch user" });
@@ -36,9 +45,18 @@ app.get('/api/auth/user', isAuthenticated, async (req, res) => {
 });
 
 // Mind map routes
-app.post('/api/mindmaps', isAuthenticated, async (req, res) => {
+app.post('/api/mindmaps', async (req, res) => {
   try {
-    const userId = req.user.claims.sub;
+    // Get user ID from session or auth
+    let userId;
+    if (req.session && req.session.user) {
+      userId = req.session.user.id;
+    } else if (req.user && req.user.claims) {
+      userId = req.user.claims.sub;
+    } else {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     const { title, data, isPublic } = req.body;
     
     const mindMap = await storage.createMindMap(userId, title, data, isPublic);
@@ -49,9 +67,16 @@ app.post('/api/mindmaps', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/api/mindmaps', isAuthenticated, async (req, res) => {
+app.get('/api/mindmaps', async (req, res) => {
   try {
-    const userId = req.user.claims.sub;
+    let userId;
+    if (req.session && req.session.user) {
+      userId = req.session.user.id;
+    } else if (req.user && req.user.claims) {
+      userId = req.user.claims.sub;
+    } else {
+      return res.status(401).json({ message: "Authentication required" });
+    };
     const mindMaps = await storage.getUserMindMaps(userId);
     res.json(mindMaps);
   } catch (error) {
