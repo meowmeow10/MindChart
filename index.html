@@ -39,9 +39,22 @@
             <div class="toolbar-group">
                 <button id="new-mindmap" class="btn" title="New Mind Map (Ctrl+N)">New</button>
                 <button id="templates-btn" class="btn" title="Choose Template">Templates</button>
-                <button id="save-mindmap" class="btn" title="Save Mind Map (Ctrl+S)">Save XML</button>
+                <div class="dropdown">
+                    <button class="btn">Save ▼</button>
+                    <div class="dropdown-content">
+                        <button id="save-mindmap">Save XML</button>
+                        <button id="save-local">Save Locally</button>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn">Load ▼</button>
+                    <div class="dropdown-content">
+                        <button id="load-btn">Load XML</button>
+                        <button id="load-local">Load Local</button>
+                        <button id="clear-local">Clear Storage</button>
+                    </div>
+                </div>
                 <input type="file" id="load-mindmap" accept=".xml" style="display: none;">
-                <button id="load-btn" class="btn" title="Load Mind Map (Ctrl+O)">Load XML</button>
             </div>
             <div class="toolbar-group">
                 <button id="login-btn" class="btn primary">Login</button>

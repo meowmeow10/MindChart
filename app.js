@@ -174,6 +174,10 @@ class MindMapApp {
         this.isAuthenticated = false;
         this.currentMindMapId = null;
         this.currentMindMapTitle = null;
+        
+        // Local storage settings
+        this.autoSaveInterval = null;
+        this.lastSaveTime = null;
 
         document.getElementById('templates-btn').addEventListener('click', () => {
             this.showTemplates();
@@ -247,6 +251,19 @@ class MindMapApp {
         // Prevent default drag behavior on the page
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => e.preventDefault());
+        
+        // Add local storage menu items
+        document.getElementById('save-local').addEventListener('click', () => {
+            this.saveToLocalStorage();
+        });
+        
+        document.getElementById('load-local').addEventListener('click', () => {
+            this.showLocalStorageModal();
+        });
+        
+        document.getElementById('clear-local').addEventListener('click', () => {
+            this.clearLocalStorage();
+        });
     }
 
     showLandingPage() {
@@ -937,6 +954,195 @@ class MindMapApp {
     handleGoogleAuth() {
         this.hideAuthModal();
         window.location.href = '/api/login';
+    }
+
+    // Local Storage Methods
+    saveToLocalStorage(name = null) {
+        try {
+            const data = this.mindMap.getData();
+            const timestamp = new Date().toISOString();
+            
+            if (!name) {
+                name = prompt('Enter a name for your mind map:', 'My Mind Map ' + new Date().toLocaleDateString());
+                if (!name) return;
+            }
+            
+            const mindMapData = {
+                name,
+                data,
+                timestamp,
+                id: Date.now().toString()
+            };
+            
+            // Get existing saved mind maps
+            const savedMaps = this.getSavedMindMaps();
+            savedMaps[mindMapData.id] = mindMapData;
+            
+            localStorage.setItem('mindmaps', JSON.stringify(savedMaps));
+            this.lastSaveTime = Date.now();
+            this.updateStatus(`Saved locally: ${name}`);
+            
+        } catch (error) {
+            console.error('Error saving to local storage:', error);
+            this.updateStatus('Failed to save locally');
+        }
+    }
+    
+    autoSaveToLocalStorage() {
+        try {
+            const data = this.mindMap.getData();
+            const timestamp = new Date().toISOString();
+            
+            const autoSaveData = {
+                name: 'Auto-save',
+                data,
+                timestamp,
+                isAutoSave: true
+            };
+            
+            localStorage.setItem('mindmap_autosave', JSON.stringify(autoSaveData));
+            this.lastSaveTime = Date.now();
+            
+        } catch (error) {
+            console.error('Error auto-saving:', error);
+        }
+    }
+    
+    loadFromLocalStorage() {
+        try {
+            // Check for auto-save first
+            const autoSave = localStorage.getItem('mindmap_autosave');
+            if (autoSave) {
+                const autoSaveData = JSON.parse(autoSave);
+                // Only load auto-save if it's recent (within 24 hours)
+                const saveTime = new Date(autoSaveData.timestamp);
+                const now = new Date();
+                const hoursDiff = (now - saveTime) / (1000 * 60 * 60);
+                
+                if (hoursDiff < 24 && autoSaveData.data.nodes.length > 1) {
+                    this.mindMap.loadData(autoSaveData.data);
+                    this.updateStatus('Restored from auto-save');
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading from local storage:', error);
+        }
+    }
+    
+    getSavedMindMaps() {
+        try {
+            const saved = localStorage.getItem('mindmaps');
+            return saved ? JSON.parse(saved) : {};
+        } catch (error) {
+            console.error('Error getting saved mind maps:', error);
+            return {};
+        }
+    }
+    
+    showLocalStorageModal() {
+        const savedMaps = this.getSavedMindMaps();
+        const mapsList = Object.values(savedMaps);
+        
+        if (mapsList.length === 0) {
+            this.updateStatus('No saved mind maps found');
+            return;
+        }
+        
+        // Create modal content
+        let modalContent = '<div class="local-storage-modal"><h3>Load Saved Mind Map</h3><div class="saved-maps-list">';
+        
+        mapsList.forEach(map => {
+            const date = new Date(map.timestamp).toLocaleString();
+            modalContent += `
+                <div class="saved-map-item" data-id="${map.id}">
+                    <div class="map-info">
+                        <span class="map-name">${map.name}</span>
+                        <span class="map-date">${date}</span>
+                    </div>
+                    <div class="map-actions">
+                        <button class="btn btn-sm load-map" data-id="${map.id}">Load</button>
+                        <button class="btn btn-sm delete-map" data-id="${map.id}">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        modalContent += '</div><button id="close-local-modal" class="btn">Close</button></div>';
+        
+        // Show modal
+        const modal = document.createElement('div');
+        modal.className = 'modal fade-in';
+        modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        modal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('load-map')) {
+                const id = e.target.dataset.id;
+                this.loadSavedMindMap(id);
+                document.body.removeChild(modal);
+            } else if (e.target.classList.contains('delete-map')) {
+                const id = e.target.dataset.id;
+                this.deleteSavedMindMap(id);
+                document.body.removeChild(modal);
+                this.showLocalStorageModal(); // Refresh the modal
+            } else if (e.target.id === 'close-local-modal') {
+                document.body.removeChild(modal);
+            }
+        });
+    }
+    
+    loadSavedMindMap(id) {
+        try {
+            const savedMaps = this.getSavedMindMaps();
+            const mindMap = savedMaps[id];
+            
+            if (mindMap) {
+                this.mindMap.loadData(mindMap.data);
+                this.updateStatus(`Loaded: ${mindMap.name}`);
+            }
+        } catch (error) {
+            console.error('Error loading saved mind map:', error);
+            this.updateStatus('Failed to load mind map');
+        }
+    }
+    
+    deleteSavedMindMap(id) {
+        try {
+            const savedMaps = this.getSavedMindMaps();
+            delete savedMaps[id];
+            localStorage.setItem('mindmaps', JSON.stringify(savedMaps));
+            this.updateStatus('Mind map deleted');
+        } catch (error) {
+            console.error('Error deleting saved mind map:', error);
+            this.updateStatus('Failed to delete mind map');
+        }
+    }
+    
+    clearLocalStorage() {
+        if (confirm('Are you sure you want to clear all locally saved mind maps? This cannot be undone.')) {
+            localStorage.removeItem('mindmaps');
+            localStorage.removeItem('mindmap_autosave');
+            this.updateStatus('Local storage cleared');
+        }
+    }
+    
+    startAutoSave() {
+        // Auto-save every 30 seconds if there are changes
+        this.autoSaveInterval = setInterval(() => {
+            const currentData = this.mindMap.getData();
+            if (currentData.nodes.length > 0) {
+                this.autoSaveToLocalStorage();
+            }
+        }, 30000); // 30 seconds
+    }
+    
+    stopAutoSave() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+            this.autoSaveInterval = null;
+        }
     }
 
     updateAuthUI() {
