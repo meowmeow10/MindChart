@@ -28,7 +28,10 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 exports.handler = async (event, context) => {
-  const { httpMethod, path, headers } = event;
+  const { httpMethod, path, headers, queryStringParameters } = event;
+  
+  // Get the actual path from query parameters (due to Netlify redirect)
+  const actualPath = queryStringParameters?.path || path;
   
   // CORS headers
   const corsHeaders = {
@@ -46,15 +49,18 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const pathParts = path.split('/').filter(p => p);
+    const pathParts = actualPath.split('/').filter(p => p);
     
     // Handle /api/login
-    if (httpMethod === 'GET' && pathParts[0] === 'login') {
+    if (httpMethod === 'GET' && (pathParts[0] === 'login' || actualPath.includes('login'))) {
       if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         // Redirect to Google OAuth
+        const baseUrl = process.env.URL || headers.host || 'https://your-site.netlify.app';
+        const redirectUri = `${baseUrl}/api/auth/google/callback`;
+        
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
           `client_id=${process.env.GOOGLE_CLIENT_ID}&` +
-          `redirect_uri=${encodeURIComponent(process.env.URL || 'https://your-site.netlify.app')}/api/auth/google/callback&` +
+          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
           `scope=profile email&` +
           `response_type=code&` +
           `access_type=offline`;
@@ -82,7 +88,7 @@ exports.handler = async (event, context) => {
     }
 
     // Handle /api/logout
-    if (httpMethod === 'GET' && pathParts[0] === 'logout') {
+    if (httpMethod === 'GET' && (pathParts[0] === 'logout' || actualPath.includes('logout'))) {
       return {
         statusCode: 302,
         headers: {
@@ -95,7 +101,7 @@ exports.handler = async (event, context) => {
     }
 
     // Handle /api/auth/user
-    if (httpMethod === 'GET' && pathParts[0] === 'auth' && pathParts[1] === 'user') {
+    if (httpMethod === 'GET' && (actualPath.includes('auth/user') || (pathParts[0] === 'auth' && pathParts[1] === 'user'))) {
       // Check for demo user cookie
       const cookies = headers.cookie || '';
       if (cookies.includes('demo_user=true')) {
@@ -120,7 +126,7 @@ exports.handler = async (event, context) => {
     }
 
     // Handle Google OAuth callback
-    if (httpMethod === 'GET' && pathParts[0] === 'auth' && pathParts[1] === 'google' && pathParts[2] === 'callback') {
+    if (httpMethod === 'GET' && (actualPath.includes('auth/google/callback') || (pathParts[0] === 'auth' && pathParts[1] === 'google' && pathParts[2] === 'callback'))) {
       const { code } = event.queryStringParameters || {};
       
       if (!code) {
@@ -146,7 +152,7 @@ exports.handler = async (event, context) => {
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: `${process.env.URL || 'https://your-site.netlify.app'}/api/auth/google/callback`
+            redirect_uri: `${process.env.URL || `https://${headers.host}`}/api/auth/google/callback`
           })
         });
 

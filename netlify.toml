@@ -8,17 +8,17 @@
 
 [[redirects]]
   from = "/api/login"
-  to = "/.netlify/functions/auth/login"
+  to = "/.netlify/functions/auth?path=login"
   status = 200
 
 [[redirects]]
   from = "/api/logout"
-  to = "/.netlify/functions/auth/logout"
+  to = "/.netlify/functions/auth?path=logout"
   status = 200
 
 [[redirects]]
   from = "/api/auth/*"
-  to = "/.netlify/functions/auth/auth/:splat"
+  to = "/.netlify/functions/auth?path=auth/:splat"
   status = 200
 
 [[redirects]]
