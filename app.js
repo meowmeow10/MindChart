@@ -104,6 +104,19 @@ class MindMapApp {
             this.handleGoogleAuth();
         });
 
+        // Collaboration handlers
+        document.getElementById('save-cloud').addEventListener('click', () => {
+            this.saveToCloud();
+        });
+
+        document.getElementById('share-btn').addEventListener('click', () => {
+            this.showShareModal();
+        });
+
+        document.getElementById('collaborate-btn').addEventListener('click', () => {
+            this.showJoinRoomModal();
+        });
+
         document.getElementById('save-cloud').addEventListener('click', () => {
             this.saveToCloud();
         });
@@ -175,6 +188,21 @@ class MindMapApp {
 
         document.getElementById('cancel-edit').addEventListener('click', () => {
             this.cancelNodeEdit();
+        });
+
+        // File operation handlers
+        document.getElementById('save-mindmap').addEventListener('click', () => {
+            this.saveMindMap();
+        });
+
+        document.getElementById('load-btn').addEventListener('click', () => {
+            document.getElementById('load-mindmap').click();
+        });
+
+        document.getElementById('load-mindmap').addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                this.loadMindMap(e.target.files[0]);
+            }
         });
 
         // Keyboard shortcuts
