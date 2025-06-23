@@ -325,12 +325,25 @@ class MindMap {
         // Don't delete if it's the last node
         if (this.nodes.size <= 1) {
             this.emit('statusUpdate', 'Cannot delete the last node');
+            this.playErrorSound();
             return false;
         }
 
         const nodeId = this.selectedNode.id;
         this.clearSelection();
         return this.deleteNode(nodeId);
+    }
+
+    playErrorSound() {
+        try {
+            const audio = new Audio('error.mp3');
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.warn('Could not play error sound:', error);
+            });
+        } catch (error) {
+            console.warn('Error sound not available:', error);
+        }
     }
 
     addConnection(fromId, toId) {
