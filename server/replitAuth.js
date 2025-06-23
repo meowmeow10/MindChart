@@ -18,6 +18,7 @@ async function loadOpenIdClient() {
   return { client, Strategy };
 }
 const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
 const memoize = require("memoizee");
 const connectPg = require("connect-pg-simple");
@@ -138,21 +139,65 @@ async function setupAuth(app) {
         });
       });
     } else {
-      // Demo mode - simplified auth for development
-      app.get("/api/login", (req, res) => {
-        req.session.user = {
-          id: 'demo-user',
-          email: 'demo@example.com',
-          firstName: 'Demo',
-          lastName: 'User'
-        };
-        res.redirect('/');
-      });
+      // Setup Google OAuth as fallback
+      if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+        passport.use(new GoogleStrategy({
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/api/auth/google/callback"
+        }, async (accessToken, refreshToken, profile, done) => {
+          try {
+            const user = {
+              id: profile.id,
+              email: profile.emails[0].value,
+              firstName: profile.name.givenName,
+              lastName: profile.name.familyName,
+              profileImageUrl: profile.photos[0].value
+            };
+            
+            // Save to database
+            await storage.upsertUser(user);
+            return done(null, user);
+          } catch (error) {
+            return done(error, null);
+          }
+        }));
 
-      app.get("/api/logout", (req, res) => {
-        req.session.destroy();
-        res.redirect('/');
-      });
+        app.get("/api/login", passport.authenticate("google", {
+          scope: ["profile", "email"]
+        }));
+
+        app.get("/api/auth/google/callback", 
+          passport.authenticate("google", { failureRedirect: "/" }),
+          (req, res) => {
+            res.redirect("/");
+          }
+        );
+
+        app.get("/api/logout", (req, res) => {
+          req.logout((err) => {
+            if (err) console.error('Logout error:', err);
+            res.redirect('/');
+          });
+        });
+      } else {
+        // Demo mode - simplified auth for development
+        app.get("/api/login", (req, res) => {
+          req.session.user = {
+            id: 'demo-user',
+            email: 'demo@example.com',
+            firstName: 'Demo',
+            lastName: 'User'
+          };
+          res.redirect('/');
+        });
+
+        app.get("/api/logout", (req, res) => {
+          req.session.destroy(() => {
+            res.redirect('/');
+          });
+        });
+      }
     }
 
     passport.serializeUser((user, cb) => cb(null, user));

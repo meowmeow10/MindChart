@@ -18,7 +18,13 @@
    - Create a new app and get your credentials
    - Choose a cluster closest to your users
 
-3. **Environment Variables in Netlify**
+3. **Set up Google OAuth (Optional)**
+   - Go to [Google Cloud Console](https://console.cloud.google.com)
+   - Create project and enable Google+ API
+   - Create OAuth 2.0 credentials
+   - Add your domain to authorized redirect URIs
+
+4. **Environment Variables in Netlify**
    Set these in your Netlify site settings:
    ```
    DATABASE_URL=your_neon_database_url
@@ -27,9 +33,11 @@
    PUSHER_KEY=your_pusher_key
    PUSHER_SECRET=your_pusher_secret
    PUSHER_CLUSTER=your_pusher_cluster
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
    ```
 
-4. **Add Pusher Configuration to Your Site**
+5. **Add Pusher Configuration to Your Site**
    Replace the placeholder values in `index.html`:
    ```javascript
    window.PUSHER_APP_KEY = 'your_actual_pusher_key';

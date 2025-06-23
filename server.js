@@ -31,10 +31,16 @@ app.get('/api/auth/user', async (req, res) => {
       return res.json(req.session.user);
     }
     
-    if (req.user && req.user.claims) {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      return res.json(user);
+    if (req.user) {
+      // Handle both Google OAuth and Replit Auth
+      if (req.user.claims) {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
+        return res.json(user);
+      } else {
+        // Google OAuth user
+        return res.json(req.user);
+      }
     }
     
     res.status(401).json({ message: "Not authenticated" });
@@ -51,8 +57,12 @@ app.post('/api/mindmaps', async (req, res) => {
     let userId;
     if (req.session && req.session.user) {
       userId = req.session.user.id;
-    } else if (req.user && req.user.claims) {
-      userId = req.user.claims.sub;
+    } else if (req.user) {
+      if (req.user.claims) {
+        userId = req.user.claims.sub;
+      } else {
+        userId = req.user.id; // Google OAuth
+      }
     } else {
       return res.status(401).json({ message: "Authentication required" });
     }
@@ -72,11 +82,15 @@ app.get('/api/mindmaps', async (req, res) => {
     let userId;
     if (req.session && req.session.user) {
       userId = req.session.user.id;
-    } else if (req.user && req.user.claims) {
-      userId = req.user.claims.sub;
+    } else if (req.user) {
+      if (req.user.claims) {
+        userId = req.user.claims.sub;
+      } else {
+        userId = req.user.id; // Google OAuth
+      }
     } else {
       return res.status(401).json({ message: "Authentication required" });
-    };
+    }
     const mindMaps = await storage.getUserMindMaps(userId);
     res.json(mindMaps);
   } catch (error) {
