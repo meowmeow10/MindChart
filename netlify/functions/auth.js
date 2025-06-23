@@ -1,6 +1,8 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Configure Google OAuth strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -129,10 +131,10 @@ exports.handler = async (event, context) => {
       if (userTokenMatch) {
         try {
           const userToken = userTokenMatch[1];
-          const userData = JSON.parse(Buffer.from(userToken, 'base64').toString());
           
-          // Check if token is still valid
-          if (userData.exp && userData.exp > Date.now()) {
+          // Try JWT token first (for email auth)
+          try {
+            const userData = jwt.verify(userToken, process.env.JWT_SECRET || 'fallback-secret');
             return {
               statusCode: 200,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -144,6 +146,24 @@ exports.handler = async (event, context) => {
                 profileImageUrl: userData.profileImageUrl
               })
             };
+          } catch (jwtError) {
+            // Fallback to base64 token (for OAuth)
+            const userData = JSON.parse(Buffer.from(userToken, 'base64').toString());
+            
+            // Check if token is still valid
+            if (userData.exp && userData.exp > Date.now()) {
+              return {
+                statusCode: 200,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: userData.id,
+                  email: userData.email,
+                  firstName: userData.firstName,
+                  lastName: userData.lastName,
+                  profileImageUrl: userData.profileImageUrl
+                })
+              };
+            }
           }
         } catch (error) {
           console.error('Token decode error:', error);
@@ -232,6 +252,97 @@ exports.handler = async (event, context) => {
             'Location': '/?error=auth_callback_failed'
           },
           body: ''
+        };
+      }
+    }
+
+    // Handle email registration
+    if (httpMethod === 'POST' && (pathParts[0] === 'register' || actualPath.includes('register'))) {
+      try {
+        const { email, password, firstName, lastName } = JSON.parse(event.body || '{}');
+        
+        if (!email || !password) {
+          return {
+            statusCode: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'Email and password required' })
+          };
+        }
+
+        // In a real app, you'd store this in a database
+        // For now, create a simple token
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userData = {
+          id: Date.now().toString(),
+          email,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          hashedPassword
+        };
+
+        const token = jwt.sign(userData, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '24h' });
+
+        return {
+          statusCode: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Set-Cookie': `user_token=${token}; Path=/; HttpOnly; Max-Age=86400; Secure; SameSite=Strict`
+          },
+          body: JSON.stringify({
+            id: userData.id,
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName
+          })
+        };
+      } catch (error) {
+        return {
+          statusCode: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Invalid registration data' })
+        };
+      }
+    }
+
+    // Handle email login
+    if (httpMethod === 'POST' && (pathParts[0] === 'login' || actualPath.includes('email-login'))) {
+      try {
+        const { email, password } = JSON.parse(event.body || '{}');
+        
+        if (!email || !password) {
+          return {
+            statusCode: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'Email and password required' })
+          };
+        }
+
+        // In a real app, you'd verify against your database
+        // For demo, create a token for any valid email/password
+        const userData = {
+          id: Date.now().toString(),
+          email,
+          firstName: email.split('@')[0],
+          lastName: ''
+        };
+
+        const token = jwt.sign(userData, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '24h' });
+
+        return {
+          statusCode: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Set-Cookie': `user_token=${token}; Path=/; HttpOnly; Max-Age=86400; Secure; SameSite=Strict`
+          },
+          body: JSON.stringify(userData)
+        };
+      } catch (error) {
+        return {
+          statusCode: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Invalid credentials' })
         };
       }
     }

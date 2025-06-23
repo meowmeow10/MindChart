@@ -79,7 +79,29 @@ class MindMapApp {
 
         // Collaboration event listeners
         document.getElementById('login-btn').addEventListener('click', () => {
-            this.handleLogin();
+            this.showAuthModal();
+        });
+
+        // Auth modal handlers
+        document.getElementById('login-tab').addEventListener('click', () => {
+            this.switchAuthTab('login');
+        });
+
+        document.getElementById('signup-tab').addEventListener('click', () => {
+            this.switchAuthTab('signup');
+        });
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleEmailAuth();
+        });
+
+        document.getElementById('auth-cancel').addEventListener('click', () => {
+            this.hideAuthModal();
+        });
+
+        document.getElementById('google-auth').addEventListener('click', () => {
+            this.handleGoogleAuth();
         });
 
         document.getElementById('save-cloud').addEventListener('click', () => {
@@ -742,14 +764,99 @@ class MindMapApp {
         }
     }
 
-    handleLogin() {
+    showAuthModal() {
         if (this.isAuthenticated) {
             // Logout
             window.location.href = '/api/logout';
-        } else {
-            // Login
-            window.location.href = '/api/login';
+            return;
         }
+
+        const modal = document.getElementById('auth-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+    }
+
+    hideAuthModal() {
+        const modal = document.getElementById('auth-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('fade-in');
+    }
+
+    switchAuthTab(mode) {
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const title = document.getElementById('auth-modal-title');
+        const submitBtn = document.getElementById('auth-submit');
+        const confirmPasswordGroup = document.getElementById('confirm-password-group');
+        const nameGroup = document.getElementById('name-group');
+
+        if (mode === 'signup') {
+            loginTab.classList.remove('active');
+            signupTab.classList.add('active');
+            title.textContent = 'Sign Up';
+            submitBtn.textContent = 'Sign Up';
+            confirmPasswordGroup.style.display = 'block';
+            nameGroup.style.display = 'block';
+            document.getElementById('auth-confirm-password').required = true;
+            document.getElementById('auth-name').required = true;
+        } else {
+            signupTab.classList.remove('active');
+            loginTab.classList.add('active');
+            title.textContent = 'Login';
+            submitBtn.textContent = 'Login';
+            confirmPasswordGroup.style.display = 'none';
+            nameGroup.style.display = 'none';
+            document.getElementById('auth-confirm-password').required = false;
+            document.getElementById('auth-name').required = false;
+        }
+    }
+
+    async handleEmailAuth() {
+        const isSignup = document.getElementById('signup-tab').classList.contains('active');
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const confirmPassword = document.getElementById('auth-confirm-password').value;
+        const name = document.getElementById('auth-name').value;
+
+        if (isSignup && password !== confirmPassword) {
+            this.updateStatus('Passwords do not match');
+            return;
+        }
+
+        try {
+            const endpoint = isSignup ? '/api/register' : '/api/login';
+            const body = isSignup 
+                ? { email, password, firstName: name.split(' ')[0], lastName: name.split(' ').slice(1).join(' ') }
+                : { email, password };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                this.currentUser = userData;
+                this.isAuthenticated = true;
+                this.updateAuthUI();
+                this.hideAuthModal();
+                this.updateStatus(`Welcome, ${userData.firstName || userData.email}!`);
+            } else {
+                const error = await response.text();
+                this.updateStatus(`Authentication failed: ${error}`);
+            }
+        } catch (error) {
+            console.error('Auth error:', error);
+            this.updateStatus('Authentication failed');
+        }
+    }
+
+    handleGoogleAuth() {
+        this.hideAuthModal();
+        window.location.href = '/api/login';
     }
 
     updateAuthUI() {
