@@ -508,6 +508,99 @@ body {
     transform: scaleX(1);
 }
 
+/* Collaboration Styles */
+.collaboration-cursor {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.cursor-pointer {
+    width: 0;
+    height: 0;
+    border-left: 8px solid #007bff;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.cursor-label {
+    background: #007bff;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+/* Share Modal Styles */
+.share-options {
+    margin: 1rem 0;
+}
+
+.share-option {
+    margin-bottom: 1rem;
+}
+
+.share-code-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.share-code-container input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+    background: #f8f9fa;
+}
+
+/* Join Room Modal Styles */
+.join-room-form {
+    margin: 1rem 0;
+}
+
+.join-room-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.join-room-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* Collaboration Status */
+.collaboration-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: #e3f2fd;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.collaboration-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
 /* Templates Modal Styles */
 .templates-content {
     max-width: 900px;

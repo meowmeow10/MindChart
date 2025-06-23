@@ -44,6 +44,12 @@
                 <button id="load-btn" class="btn" title="Load Mind Map (Ctrl+O)">Load XML</button>
             </div>
             <div class="toolbar-group">
+                <button id="login-btn" class="btn primary">Login</button>
+                <button id="save-cloud" class="btn" title="Save to Cloud" disabled>Save Cloud</button>
+                <button id="share-btn" class="btn" title="Share Mind Map" disabled>Share</button>
+                <button id="collaborate-btn" class="btn" title="Join Collaboration" disabled>Join Room</button>
+            </div>
+            <div class="toolbar-group">
                 <button id="add-node" class="btn" title="Add Node (Enter)">Add Node</button>
                 <button id="delete-node" class="btn" title="Delete Selected (Del)" disabled>Delete</button>
                 <button id="connect-mode" class="btn" title="Toggle Connection Mode">Connect Mode</button>
@@ -309,8 +315,48 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Share Mind Map</h3>
+            <div class="share-options">
+                <div class="share-option">
+                    <label>Share Code:</label>
+                    <div class="share-code-container">
+                        <input type="text" id="share-code" readonly>
+                        <button id="copy-share-code" class="btn">Copy</button>
+                    </div>
+                </div>
+                <div class="share-option">
+                    <label>
+                        <input type="checkbox" id="make-public"> Make publicly accessible
+                    </label>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="close-share-modal" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div id="join-room-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Join Collaboration Room</h3>
+            <div class="join-room-form">
+                <label for="room-code">Enter Share Code:</label>
+                <input type="text" id="room-code" placeholder="Enter share code">
+            </div>
+            <div class="modal-buttons">
+                <button id="join-room-btn" class="btn primary">Join</button>
+                <button id="cancel-join-room" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="xmlhandler.js"></script>
     <script src="mindmap.js"></script>
+    <script src="client/collaboration.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -7,9 +7,10 @@ class MindMapApp {
         this.init();
     }
 
-    init() {
+    async init() {
         this.setupEventListeners();
         this.showLandingPage();
+        await this.checkAuthStatus();
     }
 
     setupEventListeners() {
@@ -75,6 +76,45 @@ class MindMapApp {
                 this.createFromTemplate(templateType);
             }
         });
+
+        // Collaboration event listeners
+        document.getElementById('login-btn').addEventListener('click', () => {
+            this.handleLogin();
+        });
+
+        document.getElementById('save-cloud').addEventListener('click', () => {
+            this.saveToCloud();
+        });
+
+        document.getElementById('share-btn').addEventListener('click', () => {
+            this.showShareModal();
+        });
+
+        document.getElementById('collaborate-btn').addEventListener('click', () => {
+            this.showJoinRoomModal();
+        });
+
+        document.getElementById('close-share-modal').addEventListener('click', () => {
+            this.hideShareModal();
+        });
+
+        document.getElementById('copy-share-code').addEventListener('click', () => {
+            this.copyShareCode();
+        });
+
+        document.getElementById('join-room-btn').addEventListener('click', () => {
+            this.joinCollaborationRoom();
+        });
+
+        document.getElementById('cancel-join-room').addEventListener('click', () => {
+            this.hideJoinRoomModal();
+        });
+
+        // Initialize collaboration properties
+        this.collaboration = null;
+        this.currentUser = null;
+        this.isAuthenticated = false;
+        this.currentMindMapId = null;
 
         document.getElementById('templates-btn').addEventListener('click', () => {
             this.showTemplates();
@@ -685,6 +725,354 @@ class MindMapApp {
         };
 
         return templates[templateType] || null;
+    }
+
+    // Authentication methods
+    async checkAuthStatus() {
+        try {
+            const response = await fetch('/api/auth/user');
+            if (response.ok) {
+                this.currentUser = await response.json();
+                this.isAuthenticated = true;
+                this.updateAuthUI();
+            }
+        } catch (error) {
+            console.log('Not authenticated');
+        }
+    }
+
+    handleLogin() {
+        if (this.isAuthenticated) {
+            // Logout
+            window.location.href = '/api/logout';
+        } else {
+            // Login
+            window.location.href = '/api/login';
+        }
+    }
+
+    updateAuthUI() {
+        const loginBtn = document.getElementById('login-btn');
+        const saveCloudBtn = document.getElementById('save-cloud');
+        const shareBtn = document.getElementById('share-btn');
+        const collaborateBtn = document.getElementById('collaborate-btn');
+
+        if (this.isAuthenticated) {
+            loginBtn.textContent = 'Logout';
+            loginBtn.classList.remove('primary');
+            saveCloudBtn.disabled = false;
+            shareBtn.disabled = false;
+            collaborateBtn.disabled = false;
+            
+            this.updateStatus(`Logged in as ${this.currentUser.firstName || this.currentUser.email}`);
+        } else {
+            loginBtn.textContent = 'Login';
+            loginBtn.classList.add('primary');
+            saveCloudBtn.disabled = true;
+            shareBtn.disabled = true;
+            collaborateBtn.disabled = true;
+        }
+    }
+
+    // Cloud storage methods
+    async saveToCloud() {
+        if (!this.isAuthenticated) {
+            this.updateStatus('Please login to save to cloud');
+            return;
+        }
+
+        try {
+            const mindMapData = this.mindMap.getData();
+            const title = prompt('Enter mind map title:', 'My Mind Map');
+            if (!title) return;
+
+            const response = await fetch('/api/mindmaps', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    data: mindMapData,
+                    isPublic: false
+                })
+            });
+
+            if (response.ok) {
+                const mindMap = await response.json();
+                this.currentMindMapId = mindMap.id;
+                this.updateStatus(`Saved to cloud: ${title}`);
+                this.updateDebugInfo(`Mind map saved with ID: ${mindMap.id}`);
+            } else {
+                throw new Error('Failed to save to cloud');
+            }
+        } catch (error) {
+            console.error('Error saving to cloud:', error);
+            this.updateStatus('Failed to save to cloud');
+        }
+    }
+
+    // Collaboration methods
+    showShareModal() {
+        if (!this.currentMindMapId) {
+            this.updateStatus('Please save to cloud first');
+            return;
+        }
+
+        // Generate share code (this would come from the server)
+        const shareCode = 'DEMO-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        document.getElementById('share-code').value = shareCode;
+        
+        const modal = document.getElementById('share-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+    }
+
+    hideShareModal() {
+        document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    copyShareCode() {
+        const shareCodeInput = document.getElementById('share-code');
+        shareCodeInput.select();
+        document.execCommand('copy');
+        this.updateStatus('Share code copied to clipboard');
+    }
+
+    showJoinRoomModal() {
+        const modal = document.getElementById('join-room-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+    }
+
+    hideJoinRoomModal() {
+        document.getElementById('join-room-modal').classList.add('hidden');
+        document.getElementById('room-code').value = '';
+    }
+
+    async joinCollaborationRoom() {
+        const roomCode = document.getElementById('room-code').value.trim();
+        if (!roomCode) {
+            this.updateStatus('Please enter a room code');
+            return;
+        }
+
+        if (!this.isAuthenticated) {
+            this.updateStatus('Please login to join collaboration');
+            return;
+        }
+
+        try {
+            // Verify the share code exists
+            const response = await fetch(`/api/mindmaps/share/${roomCode}`);
+            if (!response.ok) {
+                throw new Error('Invalid share code');
+            }
+
+            const mindMapInfo = await response.json();
+            
+            // Initialize collaboration
+            if (!this.collaboration) {
+                this.collaboration = new CollaborationClient(this);
+            }
+
+            await this.collaboration.connect(mindMapInfo.id, this.currentUser.id, roomCode);
+            this.hideJoinRoomModal();
+            this.updateStatus(`Joined collaboration: ${mindMapInfo.title}`);
+            
+        } catch (error) {
+            console.error('Error joining room:', error);
+            this.updateStatus('Failed to join collaboration room');
+        }
+    }
+
+    setupCollaborationEvents() {
+        if (!this.collaboration) return;
+
+        // Listen for mind map changes and broadcast them
+        this.mindMap.on('nodeAdded', (data) => {
+            this.collaboration.broadcastChange('node_add', { nodeData: data });
+        });
+
+        this.mindMap.on('nodeUpdated', (data) => {
+            this.collaboration.broadcastChange('node_update', data);
+        });
+
+        this.mindMap.on('nodeDeleted', (data) => {
+            this.collaboration.broadcastChange('node_delete', data);
+        });
+
+        this.mindMap.on('connectionAdded', (data) => {
+            this.collaboration.broadcastChange('connection_add', data);
+        });
+
+        this.mindMap.on('connectionDeleted', (data) => {
+            this.collaboration.broadcastChange('connection_delete', data);
+        });
+
+        // Broadcast cursor movements
+        document.getElementById('mindmap-canvas').addEventListener('mousemove', (e) => {
+            if (this.collaboration && this.collaboration.isConnected) {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                this.collaboration.broadcastCursorMove(x, y);
+            }
+        });
+    }
+
+    // Authentication methods
+    async checkAuthStatus() {
+        try {
+            const response = await fetch('/api/auth/user');
+            if (response.ok) {
+                this.currentUser = await response.json();
+                this.isAuthenticated = true;
+                this.updateAuthUI();
+            }
+        } catch (error) {
+            console.log('Not authenticated');
+        }
+    }
+
+    handleLogin() {
+        if (this.isAuthenticated) {
+            window.location.href = '/api/logout';
+        } else {
+            window.location.href = '/api/login';
+        }
+    }
+
+    updateAuthUI() {
+        const loginBtn = document.getElementById('login-btn');
+        const saveCloudBtn = document.getElementById('save-cloud');
+        const shareBtn = document.getElementById('share-btn');
+        const collaborateBtn = document.getElementById('collaborate-btn');
+
+        if (this.isAuthenticated) {
+            loginBtn.textContent = 'Logout';
+            loginBtn.classList.remove('primary');
+            saveCloudBtn.disabled = false;
+            shareBtn.disabled = false;
+            collaborateBtn.disabled = false;
+            
+            this.updateStatus(`Logged in as ${this.currentUser.firstName || this.currentUser.email}`);
+        } else {
+            loginBtn.textContent = 'Login';
+            loginBtn.classList.add('primary');
+            saveCloudBtn.disabled = true;
+            shareBtn.disabled = true;
+            collaborateBtn.disabled = true;
+        }
+    }
+
+    // Cloud storage methods
+    async saveToCloud() {
+        if (!this.isAuthenticated) {
+            this.updateStatus('Please login to save to cloud');
+            return;
+        }
+
+        try {
+            const mindMapData = this.mindMap.getData();
+            const title = prompt('Enter mind map title:', 'My Mind Map');
+            if (!title) return;
+
+            const response = await fetch('/api/mindmaps', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    data: mindMapData,
+                    isPublic: false
+                })
+            });
+
+            if (response.ok) {
+                const mindMap = await response.json();
+                this.currentMindMapId = mindMap.id;
+                this.updateStatus(`Saved to cloud: ${title}`);
+                this.updateDebugInfo(`Mind map saved with ID: ${mindMap.id}`);
+            } else {
+                throw new Error('Failed to save to cloud');
+            }
+        } catch (error) {
+            console.error('Error saving to cloud:', error);
+            this.updateStatus('Failed to save to cloud');
+        }
+    }
+
+    // Collaboration methods
+    showShareModal() {
+        if (!this.currentMindMapId) {
+            this.updateStatus('Please save to cloud first');
+            return;
+        }
+
+        const shareCode = 'DEMO-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        document.getElementById('share-code').value = shareCode;
+        
+        const modal = document.getElementById('share-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+    }
+
+    hideShareModal() {
+        document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    copyShareCode() {
+        const shareCodeInput = document.getElementById('share-code');
+        shareCodeInput.select();
+        document.execCommand('copy');
+        this.updateStatus('Share code copied to clipboard');
+    }
+
+    showJoinRoomModal() {
+        const modal = document.getElementById('join-room-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+    }
+
+    hideJoinRoomModal() {
+        document.getElementById('join-room-modal').classList.add('hidden');
+        document.getElementById('room-code').value = '';
+    }
+
+    async joinCollaborationRoom() {
+        const roomCode = document.getElementById('room-code').value.trim();
+        if (!roomCode) {
+            this.updateStatus('Please enter a room code');
+            return;
+        }
+
+        if (!this.isAuthenticated) {
+            this.updateStatus('Please login to join collaboration');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/mindmaps/share/${roomCode}`);
+            if (!response.ok) {
+                throw new Error('Invalid share code');
+            }
+
+            const mindMapInfo = await response.json();
+            
+            if (!this.collaboration) {
+                this.collaboration = new CollaborationClient(this);
+            }
+
+            await this.collaboration.connect(mindMapInfo.id, this.currentUser.id, roomCode);
+            this.hideJoinRoomModal();
+            this.updateStatus(`Joined collaboration: ${mindMapInfo.title}`);
+            
+        } catch (error) {
+            console.error('Error joining room:', error);
+            this.updateStatus('Failed to join collaboration room');
+        }
     }
 
     showTemplates() {
