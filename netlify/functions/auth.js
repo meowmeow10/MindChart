@@ -55,7 +55,10 @@ exports.handler = async (event, context) => {
     if (httpMethod === 'GET' && (pathParts[0] === 'login' || actualPath.includes('login'))) {
       if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         // Redirect to Google OAuth
-        const baseUrl = process.env.URL || headers.host || 'https://your-site.netlify.app';
+        // Use the exact URL format expected by Google
+        const protocol = headers['x-forwarded-proto'] || 'https';
+        const host = headers.host || process.env.URL?.replace(/https?:\/\//, '');
+        const baseUrl = `${protocol}://${host}`;
         const redirectUri = `${baseUrl}/api/auth/google/callback`;
         
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -152,7 +155,7 @@ exports.handler = async (event, context) => {
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: `${process.env.URL || `https://${headers.host}`}/api/auth/google/callback`
+            redirect_uri: `${protocol}://${host}/api/auth/google/callback`
           })
         });
 

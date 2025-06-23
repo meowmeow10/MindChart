@@ -18,13 +18,16 @@
    - Create a new app and get your credentials
    - Choose a cluster closest to your users
 
-3. **Set up Google OAuth (Optional)**
+3. **Set up Google OAuth (Required for Production)**
    - Go to [Google Cloud Console](https://console.cloud.google.com)
-   - Create project and enable Google+ API
-   - Create OAuth 2.0 credentials
-   - Add your Netlify domain to authorized redirect URIs:
-     - Authorized JavaScript origins: `https://your-site.netlify.app`
-     - Authorized redirect URIs: `https://your-site.netlify.app/api/auth/google/callback`
+   - Create project and enable Google+ API  
+   - Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
+   - Choose "Web application"
+   - Add your exact Netlify URLs:
+     - **Authorized JavaScript origins**: `https://your-actual-netlify-domain.netlify.app`
+     - **Authorized redirect URIs**: `https://your-actual-netlify-domain.netlify.app/api/auth/google/callback`
+   
+   **Important**: Replace `your-actual-netlify-domain` with your real Netlify subdomain!
 
 4. **Environment Variables in Netlify**
    Set these in your Netlify site settings:
