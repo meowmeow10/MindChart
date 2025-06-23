@@ -293,9 +293,9 @@ class MindMapApp {
     }
 
     newMindMap() {
-        if (confirm('Create a new mind map? This will clear the current one.')) {
+        if (confirm('Create a new mindmap? This will clear the current one.')) {
             this.mindMap.clear();
-            this.updateStatus('New mind map created');
+            this.updateStatus('New mindmap created');
         }
     }
 
@@ -304,11 +304,11 @@ class MindMapApp {
             const data = this.mindMap.getData();
             const xmlContent = this.xmlHandler.serialize(data);
             this.downloadFile(xmlContent, 'mindmap.xml', 'application/xml');
-            this.updateStatus('Mind map saved successfully');
+            this.updateStatus('Mindmap saved successfully');
             this.updateDebugInfo(`Saved: ${data.nodes.length} nodes, ${data.connections.length} connections`);
         } catch (error) {
-            this.updateStatus('Error saving mind map: ' + error.message);
-            this.updateDebugInfo(`Save error: ${error.message}`);
+            this.updateStatus('Fault saving mindmap: ' + error.message);
+            this.updateDebugInfo(`Save fault: ${error.message}`);
             console.error('Save error:', error);
         }
     }
@@ -321,11 +321,11 @@ class MindMapApp {
             try {
                 const data = this.xmlHandler.deserialize(e.target.result);
                 this.mindMap.loadData(data);
-                this.updateStatus(`Mind map loaded: ${file.name}`);
+                this.updateStatus(`Mindmap loaded: ${file.name}`);
                 this.updateDebugInfo(`Loaded: ${data.nodes.length} nodes, ${data.connections.length} connections from ${file.name}`);
             } catch (error) {
-                this.updateStatus('Error loading mind map: ' + error.message);
-                this.updateDebugInfo(`Load error: ${error.message}`);
+                this.updateStatus('Fault loading mindmap: ' + error.message);
+                this.updateDebugInfo(`Load Fault: ${error.message}`);
                 console.error('Load error:', error);
             }
         };
@@ -541,7 +541,7 @@ class MindMapApp {
         const template = this.getTemplate(templateType);
         if (template) {
             this.mindMap.loadData(template);
-            this.updateStatus(`Created mind map from ${this.getTemplateName(templateType)} template`);
+            this.updateStatus(`Created mindmap from ${this.getTemplateName(templateType)} template`);
             this.updateDebugInfo(`Template loaded: ${templateType} - ${template.nodes.length} nodes, ${template.connections.length} connections`);
         }
     }
@@ -907,11 +907,11 @@ class MindMapApp {
                 this.updateStatus(`Welcome, ${userData.firstName || userData.email}!`);
             } else {
                 const error = await response.text();
-                this.updateStatus(`Authentication failed: ${error}`);
+                this.updateStatus(`Authentication fault: ${error}`);
             }
         } catch (error) {
-            console.error('Auth error:', error);
-            this.updateStatus('Authentication failed');
+            console.error('Auth fault:', error);
+            this.updateStatus('Authentication fault');
         }
     }
 
@@ -999,7 +999,7 @@ class MindMapApp {
             const saved = localStorage.getItem('mindmaps');
             return saved ? JSON.parse(saved) : {};
         } catch (error) {
-            console.error('Error getting saved mind maps:', error);
+            console.error('Error getting saved mindmaps:', error);
             return {};
         }
     }
@@ -1009,7 +1009,7 @@ class MindMapApp {
         const mapsList = Object.values(savedMaps);
         
         if (mapsList.length === 0) {
-            this.updateStatus('No saved mind maps found');
+            this.updateStatus('No saved mindmaps found');
             return;
         }
         
@@ -1067,8 +1067,8 @@ class MindMapApp {
                 this.updateStatus(`Loaded: ${mindMap.name}`);
             }
         } catch (error) {
-            console.error('Error loading saved mind map:', error);
-            this.updateStatus('Failed to load mind map');
+            console.error('Fault loading saved mind map:', error);
+            this.updateStatus('Fault: Failed to load mind map');
         }
     }
     
@@ -1077,15 +1077,15 @@ class MindMapApp {
             const savedMaps = this.getSavedMindMaps();
             delete savedMaps[id];
             localStorage.setItem('mindmaps', JSON.stringify(savedMaps));
-            this.updateStatus('Mind map deleted');
+            this.updateStatus('Mindmap deleted');
         } catch (error) {
-            console.error('Error deleting saved mind map:', error);
-            this.updateStatus('Failed to delete mind map');
+            console.error('Fault deleting saved mind map:', error);
+            this.updateStatus('Fault: Failed to delete mind map');
         }
     }
     
     clearLocalStorage() {
-        if (confirm('Are you sure you want to clear all locally saved mind maps? This cannot be undone.')) {
+        if (confirm('Are you sure you want to clear all locally saved mindmaps? This cannot be undone.')) {
             localStorage.removeItem('mindmaps');
             localStorage.removeItem('mindmap_autosave');
             this.updateStatus('Local storage cleared');
@@ -1151,7 +1151,7 @@ class MindMapApp {
 
         try {
             const mindMapData = this.mindMap.getData();
-            const title = prompt('Enter mind map title:', 'My Mind Map');
+            const title = prompt('Enter mindmap title:', 'My Mindmap');
             if (!title) return;
 
             const response = await fetch('/api/mindmaps', {
@@ -1170,13 +1170,13 @@ class MindMapApp {
                 const mindMap = await response.json();
                 this.currentMindMapId = mindMap.id;
                 this.updateStatus(`Saved to cloud: ${title}`);
-                this.updateDebugInfo(`Mind map saved with ID: ${mindMap.id}`);
+                this.updateDebugInfo(`Mindmap saved with ID: ${mindMap.id}`);
             } else {
-                throw new Error('Failed to save to cloud');
+                throw new Error('Fault when trying to save to cloud');
             }
         } catch (error) {
-            console.error('Error saving to cloud:', error);
-            this.updateStatus('Failed to save to cloud');
+            console.error('Fault saving to cloud:', error);
+            this.updateStatus('Fault: Failed to save to cloud');
         }
     }
 
@@ -1249,8 +1249,8 @@ class MindMapApp {
             this.updateStatus(`Joined collaboration: ${mindMapInfo.title}`);
             
         } catch (error) {
-            console.error('Error joining room:', error);
-            this.updateStatus('Failed to join collaboration room');
+            console.error('Fault joining room:', error);
+            this.updateStatus('Fault: Failed to join collaboration room');
         }
     }
 
