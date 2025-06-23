@@ -83,49 +83,13 @@ class MindMapApp {
             loginBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log('Login button clicked');
-                this.showAuthModal();
+                this.handleLogin();
             });
         } else {
             console.error('Login button not found');
         }
 
-        // Auth modal handlers - with null checks
-        const loginTab = document.getElementById('login-tab');
-        const signupTab = document.getElementById('signup-tab');
-        const authForm = document.getElementById('auth-form');
-        const authCancel = document.getElementById('auth-cancel');
-        const googleAuth = document.getElementById('google-auth');
-
-        if (loginTab) {
-            loginTab.addEventListener('click', () => {
-                this.switchAuthTab('login');
-            });
-        }
-
-        if (signupTab) {
-            signupTab.addEventListener('click', () => {
-                this.switchAuthTab('signup');
-            });
-        }
-
-        if (authForm) {
-            authForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleEmailAuth();
-            });
-        }
-
-        if (authCancel) {
-            authCancel.addEventListener('click', () => {
-                this.hideAuthModal();
-            });
-        }
-
-        if (googleAuth) {
-            googleAuth.addEventListener('click', () => {
-                this.handleGoogleAuth();
-            });
-        }
+        // Note: Auth modal handlers removed as they reference non-existent elements
 
         // Collaboration handlers
         document.getElementById('save-cloud').addEventListener('click', () => {
@@ -1168,6 +1132,16 @@ class MindMapApp {
         }
     }
 
+    handleLogin() {
+        if (this.isAuthenticated) {
+            console.log('Logging out...');
+            window.location.href = '/api/logout';
+        } else {
+            console.log('Logging in...');
+            window.location.href = '/api/login';
+        }
+    }
+
     // Cloud storage methods
     async saveToCloud() {
         if (!this.isAuthenticated) {
@@ -1315,168 +1289,7 @@ class MindMapApp {
         });
     }
 
-    // Authentication methods
-    async checkAuthStatus() {
-        try {
-            const response = await fetch('/api/auth/user');
-            if (response.ok) {
-                this.currentUser = await response.json();
-                this.isAuthenticated = true;
-                this.updateAuthUI();
-            }
-        } catch (error) {
-            console.log('Not authenticated');
-        }
-    }
-
-    handleLogin() {
-        if (this.isAuthenticated) {
-            console.log('Logging out...');
-            window.location.href = '/api/logout';
-        } else {
-            console.log('Logging in...');
-            window.location.href = '/api/login';
-        }
-    }
-
-    updateAuthUI() {
-        const loginBtn = document.getElementById('login-btn');
-        const saveCloudBtn = document.getElementById('save-cloud');
-        const shareBtn = document.getElementById('share-btn');
-        const collaborateBtn = document.getElementById('collaborate-btn');
-
-        if (this.isAuthenticated) {
-            loginBtn.textContent = 'Logout';
-            loginBtn.classList.remove('primary');
-            saveCloudBtn.disabled = false;
-            shareBtn.disabled = false;
-            collaborateBtn.disabled = false;
-            
-            this.updateStatus(`Logged in as ${this.currentUser.firstName || this.currentUser.email}`);
-        } else {
-            loginBtn.textContent = 'Login';
-            loginBtn.classList.add('primary');
-            saveCloudBtn.disabled = true;
-            shareBtn.disabled = true;
-            collaborateBtn.disabled = true;
-        }
-    }
-
-    // Cloud storage methods
-    async saveToCloud() {
-        if (!this.isAuthenticated) {
-            this.updateStatus('Please login to save to cloud');
-            return;
-        }
-
-        try {
-            const mindMapData = this.mindMap.getData();
-            const title = prompt('Enter mind map title:', 'My Mind Map');
-            if (!title) return;
-
-            const response = await fetch('/api/mindmaps', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    title,
-                    data: mindMapData,
-                    isPublic: false
-                })
-            });
-
-            if (response.ok) {
-                const mindMap = await response.json();
-                this.currentMindMapId = mindMap.id;
-                this.updateStatus(`Saved to cloud: ${title}`);
-                this.updateDebugInfo(`Mind map saved with ID: ${mindMap.id}`);
-            } else {
-                throw new Error('Failed to save to cloud');
-            }
-        } catch (error) {
-            console.error('Error saving to cloud:', error);
-            this.updateStatus('Failed to save to cloud');
-        }
-    }
-
-    // Collaboration methods
-    async showShareModal() {
-        if (!this.currentMindMapId) {
-            // Auto-save first if not saved
-            await this.saveToCloud();
-            if (!this.currentMindMapId) {
-                this.updateStatus('Failed to save mind map - cannot share');
-                return;
-            }
-        }
-
-        // Generate a proper share code based on mind map ID
-        const shareCode = 'MM-' + this.currentMindMapId.toString().padStart(6, '0');
-        document.getElementById('share-code').value = shareCode;
-        
-        const modal = document.getElementById('share-modal');
-        modal.classList.remove('hidden');
-        modal.classList.add('fade-in');
-        
-        this.updateStatus('Room created! Share the code with collaborators');
-    }
-
-    hideShareModal() {
-        document.getElementById('share-modal').classList.add('hidden');
-    }
-
-    copyShareCode() {
-        const shareCodeInput = document.getElementById('share-code');
-        shareCodeInput.select();
-        document.execCommand('copy');
-        this.updateStatus('Share code copied to clipboard');
-    }
-
-    showJoinRoomModal() {
-        const modal = document.getElementById('join-room-modal');
-        modal.classList.remove('hidden');
-        modal.classList.add('fade-in');
-    }
-
-    hideJoinRoomModal() {
-        document.getElementById('join-room-modal').classList.add('hidden');
-        document.getElementById('room-code').value = '';
-    }
-
-    async joinCollaborationRoom() {
-        const roomCode = document.getElementById('room-code').value.trim();
-        if (!roomCode) {
-            this.updateStatus('Please enter a room code');
-            return;
-        }
-
-        if (!this.isAuthenticated) {
-            this.updateStatus('Please login to join collaboration');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/mindmaps/share/${roomCode}`);
-            if (!response.ok) {
-                throw new Error('Invalid share code');
-            }
-
-            const mindMapInfo = await response.json();
-            
-            if (!this.collaboration) {
-                this.collaboration = new CollaborationClient(this);
-            }
-
-            await this.collaboration.connect(mindMapInfo.id, this.currentUser.id, roomCode);
-            this.hideJoinRoomModal();
-            this.updateStatus(`Joined collaboration: ${mindMapInfo.title}`);
-            
-        } catch (error) {
-            console.error('Error joining room:', error);
-            this.updateStatus('Failed to join collaboration room');
-        }
-    }
+    // Note: Duplicate methods removed - keeping only the first definitions
 
     showTemplates() {
         const modal = document.getElementById('templates-modal');
