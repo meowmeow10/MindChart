@@ -49,10 +49,12 @@ This is a client-side focused web application with a minimal server setup:
 
 **Mind Map Canvas**
 - SVG-based drawing area for scalable graphics
-- Toolbar with essential controls (New, Save, Load, Add Node, Delete, Connect Mode)
+- Toolbar with essential controls (New, Templates, Save, Load, Add Node, Delete, Connect Mode, Help)
 - Zoom and pan controls for navigation
 - Interactive connection editing with visual feedback
 - Real-time debugging information in status bar
+- Comprehensive keyboard shortcuts and tooltips system
+- Template system with 8 predefined mind map structures
 
 ### 3. Server Component
 

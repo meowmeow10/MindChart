@@ -398,6 +398,295 @@ class MindMapApp {
         this.updateDebugInfo('');
     }
 
+    showTemplatesModal() {
+        const modal = document.getElementById('templates-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+        this.updateDebugInfo('Showing templates');
+    }
+
+    hideTemplatesModal() {
+        document.getElementById('templates-modal').classList.add('hidden');
+        this.updateDebugInfo('');
+    }
+
+    createFromTemplate(templateType) {
+        this.hideTemplatesModal();
+        
+        if (this.mindMap.nodes.size > 1 || (this.mindMap.nodes.size === 1 && Array.from(this.mindMap.nodes.values())[0].text !== 'Central Idea')) {
+            if (!confirm('Create new mind map from template? This will replace the current mind map.')) {
+                return;
+            }
+        }
+
+        this.mindMap.clear();
+        
+        const template = this.getTemplate(templateType);
+        if (template) {
+            this.mindMap.loadData(template);
+            this.updateStatus(`Created mind map from ${this.getTemplateName(templateType)} template`);
+            this.updateDebugInfo(`Template loaded: ${templateType} - ${template.nodes.length} nodes, ${template.connections.length} connections`);
+        }
+    }
+
+    getTemplateName(templateType) {
+        const names = {
+            'project-planning': 'Project Planning',
+            'decision-making': 'Decision Making',
+            'learning': 'Learning Map',
+            'business-strategy': 'Business Strategy',
+            'swot-analysis': 'SWOT Analysis',
+            'brainstorming': 'Brainstorming',
+            'meeting-notes': 'Meeting Notes',
+            'problem-solving': 'Problem Solving'
+        };
+        return names[templateType] || 'Unknown';
+    }
+
+    getTemplate(templateType) {
+        const templates = {
+            'project-planning': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Project Name', color: '#ffeb3b', width: 150, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Goals & Objectives', color: '#e3f2fd', width: 140, height: 60 },
+                    { id: 3, x: 550, y: 200, text: 'Timeline', color: '#e8f5e8', width: 120, height: 60 },
+                    { id: 4, x: 250, y: 400, text: 'Resources', color: '#fce4ec', width: 120, height: 60 },
+                    { id: 5, x: 550, y: 400, text: 'Deliverables', color: '#fff3e0', width: 120, height: 60 },
+                    { id: 6, x: 150, y: 150, text: 'Phase 1', color: '#f3e5f5', width: 100, height: 50 },
+                    { id: 7, x: 150, y: 250, text: 'Phase 2', color: '#f3e5f5', width: 100, height: 50 },
+                    { id: 8, x: 650, y: 150, text: 'Milestones', color: '#e0f2f1', width: 100, height: 50 },
+                    { id: 9, x: 650, y: 250, text: 'Deadlines', color: '#e0f2f1', width: 100, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'decision-making': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Decision to Make', color: '#ffeb3b', width: 150, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Pros', color: '#e8f5e8', width: 120, height: 60 },
+                    { id: 3, x: 550, y: 200, text: 'Cons', color: '#ffebee', width: 120, height: 60 },
+                    { id: 4, x: 400, y: 450, text: 'Criteria', color: '#e3f2fd', width: 120, height: 60 },
+                    { id: 5, x: 150, y: 150, text: 'Benefit 1', color: '#f1f8e9', width: 100, height: 50 },
+                    { id: 6, x: 150, y: 250, text: 'Benefit 2', color: '#f1f8e9', width: 100, height: 50 },
+                    { id: 7, x: 650, y: 150, text: 'Risk 1', color: '#fce4ec', width: 100, height: 50 },
+                    { id: 8, x: 650, y: 250, text: 'Risk 2', color: '#fce4ec', width: 100, height: 50 },
+                    { id: 9, x: 300, y: 500, text: 'Cost', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 10, x: 400, y: 520, text: 'Time', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 11, x: 500, y: 500, text: 'Impact', color: '#e1f5fe', width: 80, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 2, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 3, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 4, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 4, toId: 11 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'learning': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Learning Topic', color: '#ffeb3b', width: 150, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Prerequisites', color: '#e3f2fd', width: 120, height: 60 },
+                    { id: 3, x: 550, y: 200, text: 'Core Concepts', color: '#e8f5e8', width: 120, height: 60 },
+                    { id: 4, x: 250, y: 400, text: 'Resources', color: '#fff3e0', width: 120, height: 60 },
+                    { id: 5, x: 550, y: 400, text: 'Practice', color: '#fce4ec', width: 120, height: 60 },
+                    { id: 6, x: 150, y: 150, text: 'Basic Math', color: '#e1f5fe', width: 100, height: 50 },
+                    { id: 7, x: 150, y: 250, text: 'Fundamentals', color: '#e1f5fe', width: 100, height: 50 },
+                    { id: 8, x: 650, y: 150, text: 'Key Principle 1', color: '#f1f8e9', width: 110, height: 50 },
+                    { id: 9, x: 650, y: 250, text: 'Key Principle 2', color: '#f1f8e9', width: 110, height: 50 },
+                    { id: 10, x: 150, y: 450, text: 'Books', color: '#fff8e1', width: 80, height: 50 },
+                    { id: 11, x: 250, y: 480, text: 'Videos', color: '#fff8e1', width: 80, height: 50 },
+                    { id: 12, x: 650, y: 450, text: 'Exercises', color: '#fce4ec', width: 80, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 4, toId: 11 },
+                    { id: 11, fromId: 5, toId: 12 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'business-strategy': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Business Strategy', color: '#ffeb3b', width: 160, height: 60 },
+                    { id: 2, x: 250, y: 180, text: 'Vision & Mission', color: '#e3f2fd', width: 140, height: 60 },
+                    { id: 3, x: 550, y: 180, text: 'Market Analysis', color: '#e8f5e8', width: 140, height: 60 },
+                    { id: 4, x: 200, y: 420, text: 'Operations', color: '#fff3e0', width: 120, height: 60 },
+                    { id: 5, x: 400, y: 450, text: 'Financial Goals', color: '#fce4ec', width: 140, height: 60 },
+                    { id: 6, x: 600, y: 420, text: 'Marketing', color: '#f3e5f5', width: 120, height: 60 },
+                    { id: 7, x: 150, y: 130, text: 'Values', color: '#e1f5fe', width: 90, height: 50 },
+                    { id: 8, x: 350, y: 130, text: 'Goals', color: '#e1f5fe', width: 90, height: 50 },
+                    { id: 9, x: 650, y: 130, text: 'Competitors', color: '#f1f8e9', width: 100, height: 50 },
+                    { id: 10, x: 550, y: 100, text: 'Target Market', color: '#f1f8e9', width: 110, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 1, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 2, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 3, toId: 10 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'swot-analysis': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'SWOT Analysis', color: '#ffeb3b', width: 150, height: 60 },
+                    { id: 2, x: 250, y: 180, text: 'Strengths', color: '#e8f5e8', width: 120, height: 60 },
+                    { id: 3, x: 550, y: 180, text: 'Weaknesses', color: '#ffebee', width: 120, height: 60 },
+                    { id: 4, x: 250, y: 420, text: 'Opportunities', color: '#e3f2fd', width: 140, height: 60 },
+                    { id: 5, x: 550, y: 420, text: 'Threats', color: '#fff3e0', width: 120, height: 60 },
+                    { id: 6, x: 150, y: 130, text: 'Advantage 1', color: '#f1f8e9', width: 100, height: 50 },
+                    { id: 7, x: 350, y: 130, text: 'Advantage 2', color: '#f1f8e9', width: 100, height: 50 },
+                    { id: 8, x: 650, y: 130, text: 'Limitation 1', color: '#fce4ec', width: 100, height: 50 },
+                    { id: 9, x: 450, y: 130, text: 'Limitation 2', color: '#fce4ec', width: 100, height: 50 },
+                    { id: 10, x: 150, y: 470, text: 'Market Gap', color: '#e1f5fe', width: 100, height: 50 },
+                    { id: 11, x: 350, y: 470, text: 'Growth Area', color: '#e1f5fe', width: 100, height: 50 },
+                    { id: 12, x: 650, y: 470, text: 'Competition', color: '#fff8e1', width: 100, height: 50 },
+                    { id: 13, x: 450, y: 470, text: 'Risk Factor', color: '#fff8e1', width: 100, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 4, toId: 11 },
+                    { id: 11, fromId: 5, toId: 12 },
+                    { id: 12, fromId: 5, toId: 13 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'brainstorming': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Brainstorming Topic', color: '#ffeb3b', width: 170, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Ideas Category 1', color: '#e3f2fd', width: 140, height: 60 },
+                    { id: 3, x: 550, y: 200, text: 'Ideas Category 2', color: '#e8f5e8', width: 140, height: 60 },
+                    { id: 4, x: 250, y: 400, text: 'Wild Ideas', color: '#fce4ec', width: 120, height: 60 },
+                    { id: 5, x: 550, y: 400, text: 'Practical Ideas', color: '#fff3e0', width: 130, height: 60 },
+                    { id: 6, x: 150, y: 150, text: 'Idea A', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 7, x: 150, y: 250, text: 'Idea B', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 8, x: 650, y: 150, text: 'Idea C', color: '#f1f8e9', width: 80, height: 50 },
+                    { id: 9, x: 650, y: 250, text: 'Idea D', color: '#f1f8e9', width: 80, height: 50 },
+                    { id: 10, x: 150, y: 450, text: 'Creative Solution', color: '#fce4ec', width: 120, height: 50 },
+                    { id: 11, x: 650, y: 450, text: 'Actionable Item', color: '#fff8e1', width: 120, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 5, toId: 11 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'meeting-notes': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Meeting Topic', color: '#ffeb3b', width: 140, height: 60 },
+                    { id: 2, x: 250, y: 180, text: 'Agenda Items', color: '#e3f2fd', width: 120, height: 60 },
+                    { id: 3, x: 550, y: 180, text: 'Key Decisions', color: '#e8f5e8', width: 130, height: 60 },
+                    { id: 4, x: 250, y: 420, text: 'Action Items', color: '#fff3e0', width: 120, height: 60 },
+                    { id: 5, x: 550, y: 420, text: 'Follow-up', color: '#fce4ec', width: 120, height: 60 },
+                    { id: 6, x: 150, y: 130, text: 'Topic 1', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 7, x: 350, y: 130, text: 'Topic 2', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 8, x: 650, y: 130, text: 'Decision A', color: '#f1f8e9', width: 90, height: 50 },
+                    { id: 9, x: 450, y: 130, text: 'Decision B', color: '#f1f8e9', width: 90, height: 50 },
+                    { id: 10, x: 150, y: 470, text: 'Task 1 - Owner', color: '#fff8e1', width: 120, height: 50 },
+                    { id: 11, x: 350, y: 470, text: 'Task 2 - Owner', color: '#fff8e1', width: 120, height: 50 },
+                    { id: 12, x: 650, y: 470, text: 'Next Meeting', color: '#fce4ec', width: 100, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 4, toId: 11 },
+                    { id: 11, fromId: 5, toId: 12 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            'problem-solving': {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Problem Statement', color: '#ffeb3b', width: 160, height: 60 },
+                    { id: 2, x: 250, y: 180, text: 'Root Causes', color: '#ffebee', width: 120, height: 60 },
+                    { id: 3, x: 550, y: 180, text: 'Potential Solutions', color: '#e8f5e8', width: 150, height: 60 },
+                    { id: 4, x: 250, y: 420, text: 'Impact Analysis', color: '#e3f2fd', width: 130, height: 60 },
+                    { id: 5, x: 550, y: 420, text: 'Implementation', color: '#fff3e0', width: 130, height: 60 },
+                    { id: 6, x: 150, y: 130, text: 'Cause 1', color: '#fce4ec', width: 80, height: 50 },
+                    { id: 7, x: 350, y: 130, text: 'Cause 2', color: '#fce4ec', width: 80, height: 50 },
+                    { id: 8, x: 650, y: 130, text: 'Solution A', color: '#f1f8e9', width: 90, height: 50 },
+                    { id: 9, x: 450, y: 130, text: 'Solution B', color: '#f1f8e9', width: 90, height: 50 },
+                    { id: 10, x: 150, y: 470, text: 'Risks', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 11, x: 350, y: 470, text: 'Benefits', color: '#e1f5fe', width: 80, height: 50 },
+                    { id: 12, x: 650, y: 470, text: 'Action Plan', color: '#fff8e1', width: 100, height: 50 },
+                    { id: 13, x: 450, y: 470, text: 'Timeline', color: '#fff8e1', width: 80, height: 50 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 },
+                    { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 },
+                    { id: 10, fromId: 4, toId: 11 },
+                    { id: 11, fromId: 5, toId: 12 },
+                    { id: 12, fromId: 5, toId: 13 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            }
+        };
+
+        return templates[templateType] || null;
+    }
+
     showTemplates() {
         const modal = document.getElementById('templates-modal');
         modal.classList.remove('hidden');
