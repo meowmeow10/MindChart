@@ -378,6 +378,7 @@ class MindMap {
 
     getNodeAt(x, y) {
         for (const node of this.nodes.values()) {
+            // Use current node dimensions (which may have been updated during rendering)
             if (x >= node.x - node.width/2 && x <= node.x + node.width/2 &&
                 y >= node.y - node.height/2 && y <= node.y + node.height/2) {
                 return node;
@@ -815,10 +816,10 @@ class MindMap {
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         
         this.nodes.forEach(node => {
-            minX = Math.min(minX, node.x);
-            minY = Math.min(minY, node.y);
-            maxX = Math.max(maxX, node.x + node.width);
-            maxY = Math.max(maxY, node.y + node.height);
+            minX = Math.min(minX, node.x - node.width/2);
+            minY = Math.min(minY, node.y - node.height/2);
+            maxX = Math.max(maxX, node.x + node.width/2);
+            maxY = Math.max(maxY, node.y + node.height/2);
         });
         
         // If no nodes, use default bounds
