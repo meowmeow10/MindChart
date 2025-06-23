@@ -78,31 +78,54 @@ class MindMapApp {
         });
 
         // Collaboration event listeners
-        document.getElementById('login-btn').addEventListener('click', () => {
-            this.showAuthModal();
-        });
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Login button clicked');
+                this.showAuthModal();
+            });
+        } else {
+            console.error('Login button not found');
+        }
 
-        // Auth modal handlers
-        document.getElementById('login-tab').addEventListener('click', () => {
-            this.switchAuthTab('login');
-        });
+        // Auth modal handlers - with null checks
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const authForm = document.getElementById('auth-form');
+        const authCancel = document.getElementById('auth-cancel');
+        const googleAuth = document.getElementById('google-auth');
 
-        document.getElementById('signup-tab').addEventListener('click', () => {
-            this.switchAuthTab('signup');
-        });
+        if (loginTab) {
+            loginTab.addEventListener('click', () => {
+                this.switchAuthTab('login');
+            });
+        }
 
-        document.getElementById('auth-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleEmailAuth();
-        });
+        if (signupTab) {
+            signupTab.addEventListener('click', () => {
+                this.switchAuthTab('signup');
+            });
+        }
 
-        document.getElementById('auth-cancel').addEventListener('click', () => {
-            this.hideAuthModal();
-        });
+        if (authForm) {
+            authForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleEmailAuth();
+            });
+        }
 
-        document.getElementById('google-auth').addEventListener('click', () => {
-            this.handleGoogleAuth();
-        });
+        if (authCancel) {
+            authCancel.addEventListener('click', () => {
+                this.hideAuthModal();
+            });
+        }
+
+        if (googleAuth) {
+            googleAuth.addEventListener('click', () => {
+                this.handleGoogleAuth();
+            });
+        }
 
         // Collaboration handlers
         document.getElementById('save-cloud').addEventListener('click', () => {
@@ -815,6 +838,8 @@ class MindMapApp {
     }
 
     showAuthModal() {
+        console.log('showAuthModal called, authenticated:', this.isAuthenticated);
+        
         if (this.isAuthenticated) {
             // Logout
             window.location.href = '/api/logout';
@@ -822,8 +847,13 @@ class MindMapApp {
         }
 
         const modal = document.getElementById('auth-modal');
-        modal.classList.remove('hidden');
-        modal.classList.add('fade-in');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('fade-in');
+            console.log('Auth modal shown');
+        } else {
+            console.error('Auth modal not found');
+        }
     }
 
     hideAuthModal() {
