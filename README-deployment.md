@@ -13,11 +13,27 @@
    - Create tables using the SQL provided below
    - Copy your Neon database connection string
 
-2. **Environment Variables in Netlify**
+2. **Set up Pusher for Real-time Collaboration**
+   - Create a free account at [pusher.com](https://pusher.com)
+   - Create a new app and get your credentials
+   - Choose a cluster closest to your users
+
+3. **Environment Variables in Netlify**
    Set these in your Netlify site settings:
    ```
    DATABASE_URL=your_neon_database_url
    NODE_ENV=production
+   PUSHER_APP_ID=your_pusher_app_id
+   PUSHER_KEY=your_pusher_key
+   PUSHER_SECRET=your_pusher_secret
+   PUSHER_CLUSTER=your_pusher_cluster
+   ```
+
+4. **Add Pusher Configuration to Your Site**
+   Add these as environment variables in your frontend (or directly in index.html):
+   ```javascript
+   window.PUSHER_APP_KEY = 'your_pusher_key';
+   window.PUSHER_CLUSTER = 'your_pusher_cluster';
    ```
 
 2. **Deploy to Netlify**
@@ -89,19 +105,26 @@ If you need full WebSocket support, consider:
 
 ## Current Features Working on Netlify
 - ✅ Mind map creation and editing
-- ✅ Template system
-- ✅ XML import/export
-- ✅ Cloud storage via serverless functions
-- ✅ Share codes for collaboration
-- ✅ Basic collaboration (polling-based)
-- ❌ Real-time WebSocket collaboration (requires additional service)
+- ✅ Template system with 8 professional layouts
+- ✅ XML import/export for local files
+- ✅ Cloud storage via Neon database
+- ✅ Share codes for collaboration rooms
+- ✅ Real-time collaboration via Pusher
+- ✅ Live cursor tracking and user presence
+- ✅ Collaborative editing with conflict resolution
 
-## Recommended Architecture for Production
+## Production Architecture
 
-1. **Frontend**: Netlify static hosting
+1. **Frontend**: Netlify static hosting with CDN
 2. **API**: Netlify serverless functions
-3. **Database**: Neon PostgreSQL
-4. **Real-time**: Pusher/Ably for WebSocket features
-5. **Auth**: Auth0 or similar service for production
+3. **Database**: Neon PostgreSQL (serverless, auto-scaling)
+4. **Real-time**: Pusher for WebSocket collaboration
+5. **Auth**: Replit Auth for development, Auth0 for production
 
-This setup provides scalability, reliability, and cost-effectiveness.
+## Costs (Monthly)
+- **Netlify**: Free tier for most apps, $19/month for pro features
+- **Neon**: Free tier up to 3GB, $19/month for larger databases
+- **Pusher**: Free tier for 200k messages/day, $49/month for higher usage
+- **Total**: Can start completely free, scale to ~$100/month for large teams
+
+This setup provides enterprise-grade scalability, reliability, and cost-effectiveness.
