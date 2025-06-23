@@ -393,7 +393,7 @@ body {
     border-radius: 6px;
     font-size: 0.8rem;
     white-space: nowrap;
-    z-index: 10000;
+    z-index: 99999;
     pointer-events: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     opacity: 0;
@@ -408,7 +408,7 @@ body {
     transform: translateX(-50%);
     border: 5px solid transparent;
     border-bottom-color: rgba(0, 0, 0, 0.9);
-    z-index: 10000;
+    z-index: 99999;
     pointer-events: none;
     opacity: 0;
     animation: tooltipFadeIn 0.2s ease forwards;
