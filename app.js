@@ -115,6 +115,7 @@ class MindMapApp {
         this.currentUser = null;
         this.isAuthenticated = false;
         this.currentMindMapId = null;
+        this.currentMindMapTitle = null;
 
         document.getElementById('templates-btn').addEventListener('click', () => {
             this.showTemplates();
@@ -1007,18 +1008,25 @@ class MindMapApp {
     }
 
     // Collaboration methods
-    showShareModal() {
+    async showShareModal() {
         if (!this.currentMindMapId) {
-            this.updateStatus('Please save to cloud first');
-            return;
+            // Auto-save first if not saved
+            await this.saveToCloud();
+            if (!this.currentMindMapId) {
+                this.updateStatus('Failed to save mind map - cannot share');
+                return;
+            }
         }
 
-        const shareCode = 'DEMO-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        // Generate a proper share code based on mind map ID
+        const shareCode = 'MM-' + this.currentMindMapId.toString().padStart(6, '0');
         document.getElementById('share-code').value = shareCode;
         
         const modal = document.getElementById('share-modal');
         modal.classList.remove('hidden');
         modal.classList.add('fade-in');
+        
+        this.updateStatus('Room created! Share the code with collaborators');
     }
 
     hideShareModal() {

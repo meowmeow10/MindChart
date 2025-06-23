@@ -53,13 +53,18 @@ const storage = {
       
       return result.rows[0] || null;
     } else {
-      // Fallback for development
-      return {
-        id: 1,
-        title: 'Demo Mind Map',
-        share_code: shareCode,
-        is_public: true
-      };
+      // Fallback for development - extract ID from share code
+      const idMatch = shareCode.match(/MM-(\d+)/);
+      if (idMatch) {
+        const id = parseInt(idMatch[1]);
+        return {
+          id,
+          title: 'Demo Mind Map',
+          share_code: shareCode,
+          is_public: true
+        };
+      }
+      return null;
     }
   },
 
