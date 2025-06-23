@@ -2,7 +2,7 @@
 
 ## Overview
 
-MindMapper is a browser-based interactive mind mapping application that allows users to create, organize, and visualize ideas through an intuitive drag-and-drop interface. The application features a clean landing page and a powerful mind mapping canvas with zoom, pan, and node management capabilities. Users can save their work as XML files and reload them later.
+MindMapper is a browser-based interactive mind mapping application that allows users to create, organize, and visualize ideas through an intuitive drag-and-drop interface. The application features a clean landing page and a powerful mind mapping canvas with zoom, pan, node management, and connection editing capabilities. Users can save their work as XML files and reload them later. The application includes comprehensive debugging information and real-time feedback for all user interactions.
 
 ## System Architecture
 
@@ -49,8 +49,10 @@ This is a client-side focused web application with a minimal server setup:
 
 **Mind Map Canvas**
 - SVG-based drawing area for scalable graphics
-- Toolbar with essential controls (New, Save, Load, Add Node, Delete)
+- Toolbar with essential controls (New, Save, Load, Add Node, Delete, Connect Mode)
 - Zoom and pan controls for navigation
+- Interactive connection editing with visual feedback
+- Real-time debugging information in status bar
 
 ### 3. Server Component
 
@@ -115,6 +117,8 @@ This is a client-side focused web application with a minimal server setup:
 ```
 Changelog:
 - June 23, 2025. Initial setup
+- June 23, 2025. Added comprehensive debugging information to status bar
+- June 23, 2025. Added connection editing capabilities with Connect Mode
 ```
 
 ## User Preferences
