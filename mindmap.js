@@ -57,7 +57,7 @@ class MindMap {
         const y = (e.clientY - rect.top - this.panY) / this.zoom;
 
         const clickedNode = this.getNodeAt(x, y);
-        
+
         if (clickedNode) {
             if (this.connectMode) {
                 this.handleConnectModeClick(clickedNode);
@@ -110,13 +110,13 @@ class MindMap {
             // Update cursor based on what's under the mouse
             const nodeUnderMouse = this.getNodeAt(x, y);
             const connectionUnderMouse = this.getConnectionAt(x, y);
-            
+
             if (this.connectMode) {
                 this.canvas.style.cursor = nodeUnderMouse ? 'crosshair' : 'default';
             } else {
                 this.canvas.style.cursor = nodeUnderMouse ? 'move' : connectionUnderMouse ? 'pointer' : 'grab';
             }
-            
+
             if (nodeUnderMouse) {
                 this.emit('debugInfo', `Hover: Node ${nodeUnderMouse.id} - "${nodeUnderMouse.text}"`);
             } else if (connectionUnderMouse) {
@@ -135,7 +135,7 @@ class MindMap {
         }
         this.isDragging = false;
         this.isPanning = false;
-        
+
         if (this.connectMode) {
             this.canvas.style.cursor = 'crosshair';
         } else {
@@ -199,6 +199,47 @@ class MindMap {
         this.handleMouseUp({});
     }
 
+    calculateTextDimensions(text) {
+        // Create temporary SVG text element to measure dimensions
+        const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        tempSvg.style.position = 'absolute';
+        tempSvg.style.visibility = 'hidden';
+        tempSvg.style.width = '0';
+        tempSvg.style.height = '0';
+
+        const tempText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        tempText.classList.add('node-text');
+        tempText.style.fontSize = '14px';
+        tempText.style.fontFamily = 'Segoe UI, sans-serif';
+
+        // Handle multi-line text
+        const lines = text.split('\n');
+        let maxWidth = 0;
+        let totalHeight = 0;
+
+        lines.forEach((line, index) => {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.textContent = line;
+            tspan.setAttribute('x', '0');
+            tspan.setAttribute('dy', index === 0 ? '0' : '1.2em');
+            tempText.appendChild(tspan);
+        });
+
+        tempSvg.appendChild(tempText);
+        document.body.appendChild(tempSvg);
+
+        const bbox = tempText.getBBox();
+        maxWidth = bbox.width;
+        totalHeight = bbox.height;
+
+        document.body.removeChild(tempSvg);
+
+        return {
+            width: Math.max(maxWidth + 30, 100), // Add more padding and increase minimum width
+            height: Math.max(totalHeight + 20, 50) // Add padding and minimum height
+        };
+    }
+
     addNode(x = null, y = null, text = 'New Node', color = '#e3f2fd') {
         if (x === null || y === null) {
             // Position new node relative to selected node or center
@@ -211,14 +252,16 @@ class MindMap {
             }
         }
 
+        const newId = Math.max(...this.nodes.keys(), 0) + 1;
+        const dimensions = this.calculateTextDimensions(text);
         const node = {
-            id: this.nodeIdCounter++,
+            id: newId,
             x: x,
             y: y,
             text: text,
             color: color,
-            width: 120,
-            height: 60
+            width: dimensions.width,
+            height: dimensions.height
         };
 
         this.nodes.set(node.id, node);
@@ -278,7 +321,7 @@ class MindMap {
 
     deleteSelectedNode() {
         if (!this.selectedNode) return false;
-        
+
         // Don't delete if it's the last node
         if (this.nodes.size <= 1) {
             this.emit('statusUpdate', 'Cannot delete the last node');
@@ -323,7 +366,7 @@ class MindMap {
 
     deleteSelectedConnection() {
         if (!this.selectedConnection) return false;
-        
+
         const connectionId = this.selectedConnection.id;
         this.clearSelection();
         return this.deleteConnection(connectionId);
@@ -389,28 +432,28 @@ class MindMap {
 
     getConnectionAt(x, y) {
         const tolerance = 5; // pixels
-        
+
         for (const connection of this.connections.values()) {
             const fromNode = this.nodes.get(connection.fromId);
             const toNode = this.nodes.get(connection.toId);
-            
+
             if (!fromNode || !toNode) continue;
-            
+
             // Calculate connection line points
             const dx = toNode.x - fromNode.x;
             const dy = toNode.y - fromNode.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (distance === 0) continue;
-            
+
             const unitX = dx / distance;
             const unitY = dy / distance;
-            
+
             const fromEdgeX = fromNode.x + unitX * fromNode.width/2;
             const fromEdgeY = fromNode.y + unitY * fromNode.height/2;
             const toEdgeX = toNode.x - unitX * toNode.width/2;
             const toEdgeY = toNode.y - unitY * toNode.height/2;
-            
+
             // Check if point is near the line
             const distToLine = this.distanceToLine(x, y, fromEdgeX, fromEdgeY, toEdgeX, toEdgeY);
             if (distToLine <= tolerance) {
@@ -424,12 +467,12 @@ class MindMap {
         const dx = x2 - x1;
         const dy = y2 - y1;
         const length = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (length === 0) return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
-        
+
         const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (length * length)));
         const projection = { x: x1 + t * dx, y: y1 + t * dy };
-        
+
         return Math.sqrt((px - projection.x) * (px - projection.x) + (py - projection.y) * (py - projection.y));
     }
 
@@ -459,7 +502,7 @@ class MindMap {
         text.classList.add('node-text');
         text.setAttribute('x', node.x);
         text.setAttribute('y', node.y);
-        
+
         // Handle multi-line text
         const lines = node.text.split('\n');
         if (lines.length === 1) {
@@ -482,7 +525,7 @@ class MindMap {
     renderConnection(connection) {
         const fromNode = this.nodes.get(connection.fromId);
         const toNode = this.nodes.get(connection.toId);
-        
+
         if (!fromNode || !toNode) return;
 
         // Remove existing connection element
@@ -495,7 +538,7 @@ class MindMap {
         const dx = toNode.x - fromNode.x;
         const dy = toNode.y - fromNode.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance === 0) return;
 
         const unitX = dx / distance;
@@ -560,12 +603,12 @@ class MindMap {
         // Clear all nodes and connections
         const nodeCount = this.nodes.size;
         const connectionCount = this.connections.size;
-        
+
         this.nodes.clear();
         this.connections.clear();
         this.selectedNode = null;
         this.selectedConnection = null;
-        
+
         // Clear canvas
         while (this.canvasGroup.firstChild) {
             this.canvasGroup.removeChild(this.canvasGroup.firstChild);
@@ -585,7 +628,7 @@ class MindMap {
         this.connectMode = !this.connectMode;
         this.connectingFrom = null;
         this.clearTempConnection();
-        
+
         if (this.connectMode) {
             this.canvas.style.cursor = 'crosshair';
             this.emit('debugInfo', 'Connect mode: ON - Click nodes to connect them');
@@ -593,7 +636,7 @@ class MindMap {
             this.canvas.style.cursor = 'grab';
             this.emit('debugInfo', 'Connect mode: OFF');
         }
-        
+
         this.emit('connectionModeChange', this.connectMode);
     }
 
@@ -621,9 +664,9 @@ class MindMap {
 
     updateTempConnection(x, y) {
         if (!this.connectingFrom) return;
-        
+
         this.clearTempConnection();
-        
+
         // Create temporary connection line
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.id = 'temp-connection';
@@ -632,7 +675,7 @@ class MindMap {
         line.setAttribute('y1', this.connectingFrom.y);
         line.setAttribute('x2', x);
         line.setAttribute('y2', y);
-        
+
         this.canvasGroup.appendChild(line);
     }
 
@@ -657,7 +700,7 @@ class MindMap {
 
     loadData(data) {
         this.clear();
-        
+
         // Load nodes
         if (data.nodes && data.nodes.length > 0) {
             // Clear the default node first
@@ -678,7 +721,7 @@ class MindMap {
                 };
                 this.nodes.set(node.id, node);
                 this.renderNode(node);
-                
+
                 // Update counter
                 if (node.id >= this.nodeIdCounter) {
                     this.nodeIdCounter = node.id + 1;
@@ -696,7 +739,7 @@ class MindMap {
                 };
                 this.connections.set(connection.id, connection);
                 this.renderConnection(connection);
-                
+
                 // Update counter
                 if (connection.id >= this.connectionIdCounter) {
                     this.connectionIdCounter = connection.id + 1;
@@ -743,58 +786,58 @@ class MindMap {
         // Calculate the bounding box of all nodes
         const bounds = this.calculateBounds();
         const padding = 50;
-        
+
         // Create a new SVG with just the content we want to export
         const exportSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         exportSvg.setAttribute('width', bounds.width + padding * 2);
         exportSvg.setAttribute('height', bounds.height + padding * 2);
         exportSvg.setAttribute('viewBox', `0 0 ${bounds.width + padding * 2} ${bounds.height + padding * 2}`);
-        
+
         // Add background
         const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         background.setAttribute('width', '100%');
         background.setAttribute('height', '100%');
         background.setAttribute('fill', backgroundColor);
         exportSvg.appendChild(background);
-        
+
         // Create a group to hold all content with proper offset
         const contentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         contentGroup.setAttribute('transform', `translate(${padding - bounds.minX}, ${padding - bounds.minY})`);
-        
+
         // Clone and add all connections
         this.connections.forEach(connection => {
             const connectionElement = this.renderConnection(connection);
             contentGroup.appendChild(connectionElement);
         });
-        
+
         // Clone and add all nodes
         this.nodes.forEach(node => {
             const nodeElement = this.renderNode(node);
             contentGroup.appendChild(nodeElement);
         });
-        
+
         exportSvg.appendChild(contentGroup);
-        
+
         // Convert SVG to image
         const svgData = new XMLSerializer().serializeToString(exportSvg);
         const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
         const svgUrl = URL.createObjectURL(svgBlob);
-        
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         img.onload = () => {
             canvas.width = bounds.width + padding * 2;
             canvas.height = bounds.height + padding * 2;
-            
+
             // Fill background
             ctx.fillStyle = backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw the SVG
             ctx.drawImage(img, 0, 0);
-            
+
             // Convert to desired format and download
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
@@ -808,30 +851,42 @@ class MindMap {
                 URL.revokeObjectURL(svgUrl);
             }, mimeType, 0.9);
         };
-        
+
         img.src = svgUrl;
     }
 
     calculateBounds() {
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        
+
         this.nodes.forEach(node => {
             minX = Math.min(minX, node.x - node.width/2);
             minY = Math.min(minY, node.y - node.height/2);
             maxX = Math.max(maxX, node.x + node.width/2);
             maxY = Math.max(maxY, node.y + node.height/2);
         });
-        
+
         // If no nodes, use default bounds
         if (minX === Infinity) {
             return { minX: 0, minY: 0, width: 800, height: 600 };
         }
-        
+
         return {
             minX,
             minY,
             width: maxX - minX,
             height: maxY - minY
         };
+    }
+
+    updateNodeText(nodeId, newText) {
+        if (this.nodes.has(nodeId)) {
+            const node = this.nodes.get(nodeId);
+            const dimensions = this.calculateTextDimensions(newText);
+            node.text = newText;
+            node.width = dimensions.width;
+            node.height = dimensions.height;
+            this.renderNode(node);
+            this.emit('statusUpdate', `Updated node ${nodeId} text`);
+        }
     }
 }
