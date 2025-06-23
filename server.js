@@ -8,6 +8,7 @@ const CollaborationManager = require('./server/collaboration');
 const app = express();
 const server = http.createServer(app);
 const collaborationManager = new CollaborationManager();
+console.log("MindChart Server Initialized.");
 
 // Setup middleware
 app.use(express.json());
