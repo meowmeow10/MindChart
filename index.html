@@ -38,6 +38,7 @@
         <div class="toolbar">
             <div class="toolbar-group">
                 <button id="new-mindmap" class="btn" title="New Mind Map (Ctrl+N)">New</button>
+                <button id="templates-btn" class="btn" title="Choose Template">Templates</button>
                 <button id="save-mindmap" class="btn" title="Save Mind Map (Ctrl+S)">Save XML</button>
                 <input type="file" id="load-mindmap" accept=".xml" style="display: none;">
                 <button id="load-btn" class="btn" title="Load Mind Map (Ctrl+O)">Load XML</button>
@@ -184,6 +185,126 @@
 
             <div class="modal-buttons">
                 <button id="close-shortcuts" class="btn primary">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates Modal -->
+    <div id="templates-modal" class="modal hidden">
+        <div class="modal-content templates-content">
+            <h3>Choose a Template</h3>
+            <div class="templates-grid">
+                <div class="template-item" data-template="project-planning">
+                    <div class="template-icon">📋</div>
+                    <h4>Project Planning</h4>
+                    <p>Organize project goals, tasks, and milestones</p>
+                </div>
+                
+                <div class="template-item" data-template="decision-making">
+                    <div class="template-icon">⚖️</div>
+                    <h4>Decision Making</h4>
+                    <p>Weigh pros and cons for important decisions</p>
+                </div>
+                
+                <div class="template-item" data-template="learning">
+                    <div class="template-icon">📚</div>
+                    <h4>Learning Map</h4>
+                    <p>Structure knowledge and learning objectives</p>
+                </div>
+                
+                <div class="template-item" data-template="business-strategy">
+                    <div class="template-icon">💼</div>
+                    <h4>Business Strategy</h4>
+                    <p>Plan business goals and strategies</p>
+                </div>
+                
+                <div class="template-item" data-template="swot-analysis">
+                    <div class="template-icon">🎯</div>
+                    <h4>SWOT Analysis</h4>
+                    <p>Analyze strengths, weaknesses, opportunities, threats</p>
+                </div>
+                
+                <div class="template-item" data-template="brainstorming">
+                    <div class="template-icon">💡</div>
+                    <h4>Brainstorming</h4>
+                    <p>Generate and organize creative ideas</p>
+                </div>
+                
+                <div class="template-item" data-template="meeting-notes">
+                    <div class="template-icon">📝</div>
+                    <h4>Meeting Notes</h4>
+                    <p>Structure meeting agenda and action items</p>
+                </div>
+                
+                <div class="template-item" data-template="problem-solving">
+                    <div class="template-icon">🔧</div>
+                    <h4>Problem Solving</h4>
+                    <p>Break down problems and find solutions</p>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="cancel-template" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates Modal -->
+    <div id="templates-modal" class="modal hidden">
+        <div class="modal-content templates-content">
+            <h3>Choose a Template</h3>
+            <div class="templates-grid">
+                <div class="template-card" data-template="blank">
+                    <div class="template-icon">📋</div>
+                    <h4>Blank Canvas</h4>
+                    <p>Start with a single central idea node</p>
+                </div>
+                
+                <div class="template-card" data-template="project">
+                    <div class="template-icon">🚀</div>
+                    <h4>Project Planning</h4>
+                    <p>Goals, tasks, resources, and timeline structure</p>
+                </div>
+                
+                <div class="template-card" data-template="brainstorm">
+                    <div class="template-icon">💡</div>
+                    <h4>Brainstorming</h4>
+                    <p>Ideas, pros/cons, and action items layout</p>
+                </div>
+                
+                <div class="template-card" data-template="study">
+                    <div class="template-icon">📚</div>
+                    <h4>Study Notes</h4>
+                    <p>Topic breakdown with key concepts and details</p>
+                </div>
+                
+                <div class="template-card" data-template="meeting">
+                    <div class="template-icon">👥</div>
+                    <h4>Meeting Notes</h4>
+                    <p>Agenda, discussion points, and action items</p>
+                </div>
+                
+                <div class="template-card" data-template="decision">
+                    <div class="template-icon">⚖️</div>
+                    <h4>Decision Making</h4>
+                    <p>Options, criteria, pros/cons analysis</p>
+                </div>
+                
+                <div class="template-card" data-template="swot">
+                    <div class="template-icon">📊</div>
+                    <h4>SWOT Analysis</h4>
+                    <p>Strengths, weaknesses, opportunities, threats</p>
+                </div>
+                
+                <div class="template-card" data-template="problem">
+                    <div class="template-icon">🔧</div>
+                    <h4>Problem Solving</h4>
+                    <p>Problem definition, causes, and solutions</p>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="cancel-template" class="btn">Cancel</button>
             </div>
         </div>
     </div>

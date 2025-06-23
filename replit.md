@@ -119,6 +119,8 @@ Changelog:
 - June 23, 2025. Initial setup
 - June 23, 2025. Added comprehensive debugging information to status bar
 - June 23, 2025. Added connection editing capabilities with Connect Mode
+- June 23, 2025. Added keyboard shortcuts help system with tooltips
+- June 23, 2025. Implemented template system with 8 pre-built mind map templates
 ```
 
 ## User Preferences

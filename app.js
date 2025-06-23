@@ -60,6 +60,38 @@ class MindMapApp {
             this.hideShortcutsHelp();
         });
 
+        document.getElementById('templates-btn').addEventListener('click', () => {
+            this.showTemplatesModal();
+        });
+
+        document.getElementById('cancel-template').addEventListener('click', () => {
+            this.hideTemplatesModal();
+        });
+
+        // Template selection
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.template-item')) {
+                const templateType = e.target.closest('.template-item').dataset.template;
+                this.createFromTemplate(templateType);
+            }
+        });
+
+        document.getElementById('templates-btn').addEventListener('click', () => {
+            this.showTemplates();
+        });
+
+        document.getElementById('cancel-template').addEventListener('click', () => {
+            this.hideTemplates();
+        });
+
+        // Template selection
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.template-card')) {
+                const templateType = e.target.closest('.template-card').dataset.template;
+                this.loadTemplate(templateType);
+            }
+        });
+
         // Zoom controls
         document.getElementById('zoom-in').addEventListener('click', () => {
             this.mindMap?.zoomIn();
@@ -267,7 +299,9 @@ class MindMapApp {
                 e.preventDefault();
                 break;
             case 'Escape':
-                if (!document.getElementById('shortcuts-modal').classList.contains('hidden')) {
+                if (!document.getElementById('templates-modal').classList.contains('hidden')) {
+                    this.hideTemplates();
+                } else if (!document.getElementById('shortcuts-modal').classList.contains('hidden')) {
                     this.hideShortcutsHelp();
                 } else if (!document.getElementById('node-editor').classList.contains('hidden')) {
                     this.cancelNodeEdit();
@@ -362,6 +396,215 @@ class MindMapApp {
     hideShortcutsHelp() {
         document.getElementById('shortcuts-modal').classList.add('hidden');
         this.updateDebugInfo('');
+    }
+
+    showTemplates() {
+        const modal = document.getElementById('templates-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+        this.updateDebugInfo('Showing templates selection');
+    }
+
+    hideTemplates() {
+        document.getElementById('templates-modal').classList.add('hidden');
+        this.updateDebugInfo('');
+    }
+
+    loadTemplate(templateType) {
+        this.hideTemplates();
+        
+        if (this.mindMap.nodes.size > 1) {
+            if (!confirm('Load template? This will replace your current mind map.')) {
+                return;
+            }
+        }
+
+        const templateData = this.getTemplateData(templateType);
+        this.mindMap.loadData(templateData);
+        this.updateStatus(`Template loaded: ${this.getTemplateName(templateType)}`);
+        this.updateDebugInfo(`Loaded template: ${templateType}`);
+    }
+
+    getTemplateName(templateType) {
+        const names = {
+            blank: 'Blank Canvas',
+            project: 'Project Planning',
+            brainstorm: 'Brainstorming',
+            study: 'Study Notes',
+            meeting: 'Meeting Notes',
+            decision: 'Decision Making',
+            swot: 'SWOT Analysis',
+            problem: 'Problem Solving'
+        };
+        return names[templateType] || 'Unknown Template';
+    }
+
+    getTemplateData(templateType) {
+        const templates = {
+            blank: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Central Idea', color: '#ffeb3b', width: 120, height: 60 }
+                ],
+                connections: [],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+            
+            project: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Project Name', color: '#2196f3', width: 140, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Goals', color: '#4caf50', width: 100, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Tasks', color: '#ff9800', width: 100, height: 50 },
+                    { id: 4, x: 250, y: 400, text: 'Resources', color: '#9c27b0', width: 100, height: 50 },
+                    { id: 5, x: 550, y: 400, text: 'Timeline', color: '#f44336', width: 100, height: 50 },
+                    { id: 6, x: 150, y: 150, text: 'Objective 1', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 7, x: 150, y: 250, text: 'Objective 2', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 8, x: 650, y: 150, text: 'Task 1', color: '#fff3e0', width: 80, height: 40 },
+                    { id: 9, x: 650, y: 250, text: 'Task 2', color: '#fff3e0', width: 80, height: 40 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 }, { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 }, { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 }, { id: 8, fromId: 3, toId: 9 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            brainstorm: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Topic', color: '#ffeb3b', width: 120, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Ideas', color: '#4caf50', width: 100, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Pros', color: '#2196f3', width: 100, height: 50 },
+                    { id: 4, x: 400, y: 450, text: 'Cons', color: '#f44336', width: 100, height: 50 },
+                    { id: 5, x: 250, y: 400, text: 'Actions', color: '#9c27b0', width: 100, height: 50 },
+                    { id: 6, x: 150, y: 150, text: 'Idea 1', color: '#e8f5e8', width: 80, height: 40 },
+                    { id: 7, x: 150, y: 250, text: 'Idea 2', color: '#e8f5e8', width: 80, height: 40 },
+                    { id: 8, x: 650, y: 150, text: 'Benefit 1', color: '#e3f2fd', width: 80, height: 40 },
+                    { id: 9, x: 650, y: 250, text: 'Benefit 2', color: '#e3f2fd', width: 80, height: 40 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 }, { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 }, { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 }, { id: 8, fromId: 3, toId: 9 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            study: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Subject', color: '#9c27b0', width: 120, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Chapter 1', color: '#2196f3', width: 100, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Chapter 2', color: '#2196f3', width: 100, height: 50 },
+                    { id: 4, x: 400, y: 450, text: 'Key Terms', color: '#ff9800', width: 100, height: 50 },
+                    { id: 5, x: 150, y: 150, text: 'Key Points', color: '#e3f2fd', width: 90, height: 40 },
+                    { id: 6, x: 150, y: 250, text: 'Examples', color: '#e3f2fd', width: 90, height: 40 },
+                    { id: 7, x: 650, y: 150, text: 'Concepts', color: '#e3f2fd', width: 90, height: 40 },
+                    { id: 8, x: 650, y: 250, text: 'Practice', color: '#e3f2fd', width: 90, height: 40 },
+                    { id: 9, x: 300, y: 500, text: 'Term 1', color: '#fff3e0', width: 80, height: 35 },
+                    { id: 10, x: 500, y: 500, text: 'Term 2', color: '#fff3e0', width: 80, height: 35 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 }, { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 2, toId: 5 }, { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 3, toId: 7 }, { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 4, toId: 9 }, { id: 9, fromId: 4, toId: 10 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            meeting: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Meeting Topic', color: '#607d8b', width: 140, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Agenda', color: '#2196f3', width: 100, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Discussion', color: '#4caf50', width: 100, height: 50 },
+                    { id: 4, x: 400, y: 450, text: 'Action Items', color: '#f44336', width: 120, height: 50 },
+                    { id: 5, x: 150, y: 150, text: 'Item 1', color: '#e3f2fd', width: 80, height: 40 },
+                    { id: 6, x: 150, y: 250, text: 'Item 2', color: '#e3f2fd', width: 80, height: 40 },
+                    { id: 7, x: 650, y: 150, text: 'Point 1', color: '#e8f5e8', width: 80, height: 40 },
+                    { id: 8, x: 650, y: 250, text: 'Point 2', color: '#e8f5e8', width: 80, height: 40 },
+                    { id: 9, x: 300, y: 520, text: 'Action 1', color: '#ffebee', width: 90, height: 40 },
+                    { id: 10, x: 500, y: 520, text: 'Action 2', color: '#ffebee', width: 90, height: 40 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 }, { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 2, toId: 5 }, { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 3, toId: 7 }, { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 4, toId: 9 }, { id: 9, fromId: 4, toId: 10 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            decision: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Decision', color: '#795548', width: 120, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Option A', color: '#2196f3', width: 100, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Option B', color: '#2196f3', width: 100, height: 50 },
+                    { id: 4, x: 400, y: 450, text: 'Criteria', color: '#9c27b0', width: 100, height: 50 },
+                    { id: 5, x: 150, y: 120, text: 'Pros', color: '#4caf50', width: 80, height: 40 },
+                    { id: 6, x: 150, y: 280, text: 'Cons', color: '#f44336', width: 80, height: 40 },
+                    { id: 7, x: 650, y: 120, text: 'Pros', color: '#4caf50', width: 80, height: 40 },
+                    { id: 8, x: 650, y: 280, text: 'Cons', color: '#f44336', width: 80, height: 40 },
+                    { id: 9, x: 300, y: 520, text: 'Cost', color: '#e1bee7', width: 80, height: 35 },
+                    { id: 10, x: 500, y: 520, text: 'Time', color: '#e1bee7', width: 80, height: 35 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 }, { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 2, toId: 5 }, { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 3, toId: 7 }, { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 4, toId: 9 }, { id: 9, fromId: 4, toId: 10 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            swot: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'SWOT Analysis', color: '#607d8b', width: 140, height: 60 },
+                    { id: 2, x: 250, y: 180, text: 'Strengths', color: '#4caf50', width: 110, height: 50 },
+                    { id: 3, x: 550, y: 180, text: 'Weaknesses', color: '#f44336', width: 110, height: 50 },
+                    { id: 4, x: 250, y: 420, text: 'Opportunities', color: '#2196f3', width: 130, height: 50 },
+                    { id: 5, x: 550, y: 420, text: 'Threats', color: '#ff9800', width: 100, height: 50 },
+                    { id: 6, x: 150, y: 120, text: 'Strength 1', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 7, x: 150, y: 240, text: 'Strength 2', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 8, x: 650, y: 120, text: 'Weakness 1', color: '#ffebee', width: 90, height: 40 },
+                    { id: 9, x: 650, y: 240, text: 'Weakness 2', color: '#ffebee', width: 90, height: 40 },
+                    { id: 10, x: 150, y: 480, text: 'Opportunity 1', color: '#e3f2fd', width: 100, height: 40 },
+                    { id: 11, x: 650, y: 480, text: 'Threat 1', color: '#fff3e0', width: 80, height: 40 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 },
+                    { id: 3, fromId: 1, toId: 4 }, { id: 4, fromId: 1, toId: 5 },
+                    { id: 5, fromId: 2, toId: 6 }, { id: 6, fromId: 2, toId: 7 },
+                    { id: 7, fromId: 3, toId: 8 }, { id: 8, fromId: 3, toId: 9 },
+                    { id: 9, fromId: 4, toId: 10 }, { id: 10, fromId: 5, toId: 11 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            },
+
+            problem: {
+                nodes: [
+                    { id: 1, x: 400, y: 300, text: 'Problem', color: '#ff5722', width: 120, height: 60 },
+                    { id: 2, x: 250, y: 200, text: 'Root Causes', color: '#f44336', width: 110, height: 50 },
+                    { id: 3, x: 550, y: 200, text: 'Solutions', color: '#4caf50', width: 100, height: 50 },
+                    { id: 4, x: 400, y: 450, text: 'Next Steps', color: '#2196f3', width: 110, height: 50 },
+                    { id: 5, x: 150, y: 150, text: 'Cause 1', color: '#ffebee', width: 80, height: 40 },
+                    { id: 6, x: 150, y: 250, text: 'Cause 2', color: '#ffebee', width: 80, height: 40 },
+                    { id: 7, x: 650, y: 150, text: 'Solution 1', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 8, x: 650, y: 250, text: 'Solution 2', color: '#e8f5e8', width: 90, height: 40 },
+                    { id: 9, x: 300, y: 520, text: 'Action 1', color: '#e3f2fd', width: 80, height: 35 },
+                    { id: 10, x: 500, y: 520, text: 'Action 2', color: '#e3f2fd', width: 80, height: 35 }
+                ],
+                connections: [
+                    { id: 1, fromId: 1, toId: 2 }, { id: 2, fromId: 1, toId: 3 }, { id: 3, fromId: 1, toId: 4 },
+                    { id: 4, fromId: 2, toId: 5 }, { id: 5, fromId: 2, toId: 6 },
+                    { id: 6, fromId: 3, toId: 7 }, { id: 7, fromId: 3, toId: 8 },
+                    { id: 8, fromId: 4, toId: 9 }, { id: 9, fromId: 4, toId: 10 }
+                ],
+                view: { zoom: 1, panX: 0, panY: 0 }
+            }
+        };
+
+        return templates[templateType] || templates.blank;
     }
 }
 
