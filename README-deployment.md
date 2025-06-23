@@ -30,11 +30,13 @@
    ```
 
 4. **Add Pusher Configuration to Your Site**
-   Add these as environment variables in your frontend (or directly in index.html):
+   Replace the placeholder values in `index.html`:
    ```javascript
-   window.PUSHER_APP_KEY = 'your_pusher_key';
-   window.PUSHER_CLUSTER = 'your_pusher_cluster';
+   window.PUSHER_APP_KEY = 'your_actual_pusher_key';
+   window.PUSHER_CLUSTER = 'your_actual_cluster';
    ```
+   
+   Or set as Netlify environment variables and update the script to use them.
 
 2. **Deploy to Netlify**
    - Connect your GitHub repository to Netlify
