@@ -48,6 +48,10 @@ class MindMapApp {
             this.deleteSelectedNode();
         });
 
+        document.getElementById('connect-mode').addEventListener('click', () => {
+            this.toggleConnectMode();
+        });
+
         // Zoom controls
         document.getElementById('zoom-in').addEventListener('click', () => {
             this.mindMap?.zoomIn();
@@ -122,6 +126,23 @@ class MindMapApp {
 
         this.mindMap.on('debugInfo', (info) => {
             this.updateDebugInfo(info);
+        });
+
+        this.mindMap.on('connectionModeChange', (isActive) => {
+            const btn = document.getElementById('connect-mode');
+            if (isActive) {
+                btn.classList.add('active');
+                btn.textContent = 'Exit Connect';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'Connect Mode';
+            }
+        });
+
+        this.mindMap.on('connectionSelected', (connection) => {
+            if (connection) {
+                this.updateDebugInfo(`Connection selected: ${connection.fromId} → ${connection.toId}`);
+            }
         });
     }
 
@@ -228,6 +249,9 @@ class MindMapApp {
                 if (this.mindMap.selectedNode) {
                     this.deleteSelectedNode();
                     e.preventDefault();
+                } else if (this.mindMap.selectedConnection) {
+                    this.mindMap.deleteSelectedConnection();
+                    e.preventDefault();
                 }
                 break;
             case 'Enter':
@@ -305,6 +329,10 @@ class MindMapApp {
 
     updateDebugInfo(info) {
         document.getElementById('debug-info').textContent = info;
+    }
+
+    toggleConnectMode() {
+        this.mindMap.toggleConnectMode();
     }
 }
 

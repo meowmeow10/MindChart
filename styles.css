@@ -155,6 +155,15 @@ body {
     background: #0056b3;
 }
 
+.btn.active {
+    background: #ff9800;
+    color: white;
+}
+
+.btn.active:hover {
+    background: #f57c00;
+}
+
 .canvas-container {
     flex: 1;
     overflow: hidden;
@@ -237,6 +246,20 @@ body {
 .connection-line.selected {
     stroke: #007bff;
     stroke-width: 3;
+}
+
+.connection-line:hover {
+    stroke: #ff6b6b;
+    stroke-width: 3;
+    cursor: pointer;
+}
+
+.connecting-line {
+    stroke: #ff9800;
+    stroke-width: 2;
+    stroke-dasharray: 5,5;
+    fill: none;
+    pointer-events: none;
 }
 
 /* Modal Styles */

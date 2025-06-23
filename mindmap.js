@@ -16,6 +16,9 @@ class MindMap {
         this.nodeIdCounter = 1;
         this.connectionIdCounter = 1;
         this.eventHandlers = {};
+        this.connectMode = false;
+        this.connectingFrom = null;
+        this.tempConnection = null;
 
         this.init();
     }
@@ -53,19 +56,32 @@ class MindMap {
         const clickedNode = this.getNodeAt(x, y);
         
         if (clickedNode) {
-            this.selectNode(clickedNode);
-            this.isDragging = true;
-            this.dragOffset = {
-                x: x - clickedNode.x,
-                y: y - clickedNode.y
-            };
-            this.emit('debugInfo', `Dragging: Node ${clickedNode.id}`);
+            if (this.connectMode) {
+                this.handleConnectModeClick(clickedNode);
+            } else {
+                this.selectNode(clickedNode);
+                this.isDragging = true;
+                this.dragOffset = {
+                    x: x - clickedNode.x,
+                    y: y - clickedNode.y
+                };
+                this.emit('debugInfo', `Dragging: Node ${clickedNode.id}`);
+            }
         } else {
-            this.clearSelection();
-            this.isPanning = true;
-            this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
-            this.canvas.style.cursor = 'grabbing';
-            this.emit('debugInfo', 'Panning canvas');
+            // Check if clicking on a connection
+            const clickedConnection = this.getConnectionAt(x, y);
+            if (clickedConnection) {
+                this.selectConnection(clickedConnection);
+                this.emit('debugInfo', `Connection selected: ${clickedConnection.fromId} → ${clickedConnection.toId}`);
+            } else {
+                this.clearSelection();
+                if (!this.connectMode) {
+                    this.isPanning = true;
+                    this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
+                    this.canvas.style.cursor = 'grabbing';
+                    this.emit('debugInfo', 'Panning canvas');
+                }
+            }
         }
     }
 
@@ -84,12 +100,24 @@ class MindMap {
             this.panY = e.clientY - this.panStart.y;
             this.updateTransform();
             this.emit('debugInfo', `Pan: (${Math.round(this.panX)}, ${Math.round(this.panY)})`);
+        } else if (this.connectMode && this.connectingFrom) {
+            // Update temporary connection line
+            this.updateTempConnection(x, y);
         } else {
             // Update cursor based on what's under the mouse
             const nodeUnderMouse = this.getNodeAt(x, y);
-            this.canvas.style.cursor = nodeUnderMouse ? 'move' : 'grab';
+            const connectionUnderMouse = this.getConnectionAt(x, y);
+            
+            if (this.connectMode) {
+                this.canvas.style.cursor = nodeUnderMouse ? 'crosshair' : 'default';
+            } else {
+                this.canvas.style.cursor = nodeUnderMouse ? 'move' : connectionUnderMouse ? 'pointer' : 'grab';
+            }
+            
             if (nodeUnderMouse) {
                 this.emit('debugInfo', `Hover: Node ${nodeUnderMouse.id} - "${nodeUnderMouse.text}"`);
+            } else if (connectionUnderMouse) {
+                this.emit('debugInfo', `Hover: Connection ${connectionUnderMouse.fromId} → ${connectionUnderMouse.toId}`);
             } else {
                 this.emit('debugInfo', `Mouse: (${Math.round(x)}, ${Math.round(y)})`);
             }
@@ -104,7 +132,12 @@ class MindMap {
         }
         this.isDragging = false;
         this.isPanning = false;
-        this.canvas.style.cursor = 'grab';
+        
+        if (this.connectMode) {
+            this.canvas.style.cursor = 'crosshair';
+        } else {
+            this.canvas.style.cursor = 'grab';
+        }
     }
 
     handleDoubleClick(e) {
@@ -281,7 +314,16 @@ class MindMap {
         if (connectionElement) {
             connectionElement.remove();
         }
+        this.emit('debugInfo', `Deleted connection: ${connectionId}`);
         return this.connections.delete(connectionId);
+    }
+
+    deleteSelectedConnection() {
+        if (!this.selectedConnection) return false;
+        
+        const connectionId = this.selectedConnection.id;
+        this.clearSelection();
+        return this.deleteConnection(connectionId);
     }
 
     selectNode(node) {
@@ -295,6 +337,19 @@ class MindMap {
         }
 
         this.emit('nodeSelected', node);
+    }
+
+    selectConnection(connection) {
+        // Clear previous selection
+        this.clearSelection();
+
+        this.selectedConnection = connection;
+        const connectionElement = document.getElementById(`connection-${connection.id}`);
+        if (connectionElement) {
+            connectionElement.classList.add('selected');
+        }
+
+        this.emit('connectionSelected', connection);
     }
 
     clearSelection() {
@@ -315,6 +370,7 @@ class MindMap {
         }
 
         this.emit('nodeSelected', null);
+        this.emit('connectionSelected', null);
     }
 
     getNodeAt(x, y) {
@@ -325,6 +381,52 @@ class MindMap {
             }
         }
         return null;
+    }
+
+    getConnectionAt(x, y) {
+        const tolerance = 5; // pixels
+        
+        for (const connection of this.connections.values()) {
+            const fromNode = this.nodes.get(connection.fromId);
+            const toNode = this.nodes.get(connection.toId);
+            
+            if (!fromNode || !toNode) continue;
+            
+            // Calculate connection line points
+            const dx = toNode.x - fromNode.x;
+            const dy = toNode.y - fromNode.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance === 0) continue;
+            
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+            
+            const fromEdgeX = fromNode.x + unitX * fromNode.width/2;
+            const fromEdgeY = fromNode.y + unitY * fromNode.height/2;
+            const toEdgeX = toNode.x - unitX * toNode.width/2;
+            const toEdgeY = toNode.y - unitY * toNode.height/2;
+            
+            // Check if point is near the line
+            const distToLine = this.distanceToLine(x, y, fromEdgeX, fromEdgeY, toEdgeX, toEdgeY);
+            if (distToLine <= tolerance) {
+                return connection;
+            }
+        }
+        return null;
+    }
+
+    distanceToLine(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        if (length === 0) return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
+        
+        const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (length * length)));
+        const projection = { x: x1 + t * dx, y: y1 + t * dy };
+        
+        return Math.sqrt((px - projection.x) * (px - projection.x) + (py - projection.y) * (py - projection.y));
     }
 
     renderNode(node) {
@@ -473,6 +575,68 @@ class MindMap {
         this.addNode(400, 300, 'Central Idea', '#ffeb3b');
         this.resetView();
         this.emit('debugInfo', `Cleared: ${nodeCount} nodes, ${connectionCount} connections`);
+    }
+
+    toggleConnectMode() {
+        this.connectMode = !this.connectMode;
+        this.connectingFrom = null;
+        this.clearTempConnection();
+        
+        if (this.connectMode) {
+            this.canvas.style.cursor = 'crosshair';
+            this.emit('debugInfo', 'Connect mode: ON - Click nodes to connect them');
+        } else {
+            this.canvas.style.cursor = 'grab';
+            this.emit('debugInfo', 'Connect mode: OFF');
+        }
+        
+        this.emit('connectionModeChange', this.connectMode);
+    }
+
+    handleConnectModeClick(node) {
+        if (!this.connectingFrom) {
+            // Start connecting from this node
+            this.connectingFrom = node;
+            this.selectNode(node);
+            this.emit('debugInfo', `Connecting from: Node ${node.id} - Click target node`);
+        } else if (this.connectingFrom.id === node.id) {
+            // Clicked same node - cancel connection
+            this.connectingFrom = null;
+            this.clearTempConnection();
+            this.emit('debugInfo', 'Connection cancelled');
+        } else {
+            // Complete the connection
+            const connection = this.addConnection(this.connectingFrom.id, node.id);
+            if (connection) {
+                this.emit('debugInfo', `Connected: Node ${this.connectingFrom.id} → Node ${node.id}`);
+            }
+            this.connectingFrom = null;
+            this.clearTempConnection();
+        }
+    }
+
+    updateTempConnection(x, y) {
+        if (!this.connectingFrom) return;
+        
+        this.clearTempConnection();
+        
+        // Create temporary connection line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.id = 'temp-connection';
+        line.classList.add('connecting-line');
+        line.setAttribute('x1', this.connectingFrom.x);
+        line.setAttribute('y1', this.connectingFrom.y);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', y);
+        
+        this.canvasGroup.appendChild(line);
+    }
+
+    clearTempConnection() {
+        const tempConnection = document.getElementById('temp-connection');
+        if (tempConnection) {
+            tempConnection.remove();
+        }
     }
 
     getData() {
