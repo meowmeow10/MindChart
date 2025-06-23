@@ -110,9 +110,10 @@ This is a client-side focused web application with a minimal server setup:
 - No database or complex infrastructure required
 
 **Deployment Configuration:**
-- Configured for shell execution: `node server.js`
-- Parallel workflow execution in Replit
-- Port 5000 exposure for web access
+- **Development**: Configured for shell execution: `node server.js` on port 5000
+- **Production**: Netlify-ready with serverless functions and static hosting
+- **Database**: Neon PostgreSQL for scalable cloud storage
+- **Collaboration**: WebSocket server for development, polling-based for Netlify deployment
 
 ## Changelog
 

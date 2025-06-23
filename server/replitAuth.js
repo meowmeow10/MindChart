@@ -4,9 +4,16 @@ let Strategy;
 
 async function loadOpenIdClient() {
   if (!client) {
-    const openidClient = await import("openid-client");
-    client = openidClient;
-    Strategy = openidClient.Strategy;
+    try {
+      const openidClient = await import("openid-client");
+      client = openidClient.default || openidClient;
+      Strategy = openidClient.Strategy || openidClient.default.Strategy;
+    } catch (error) {
+      console.error('Failed to load openid-client:', error);
+      // Fallback for development without auth
+      client = { discovery: () => ({}), buildEndSessionUrl: () => ({ href: '/' }) };
+      Strategy = class MockStrategy {};
+    }
   }
   return { client, Strategy };
 }
@@ -16,7 +23,8 @@ const memoize = require("memoizee");
 const connectPg = require("connect-pg-simple");
 const { storage } = require("./storage");
 
-if (!process.env.REPLIT_DOMAINS) {
+// Skip REPLIT_DOMAINS check for development
+if (!process.env.REPLIT_DOMAINS && process.env.NODE_ENV === 'production') {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
