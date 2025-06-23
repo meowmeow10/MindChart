@@ -22,13 +22,16 @@
    - Go to [Google Cloud Console](https://console.cloud.google.com)
    - Create project and enable Google+ API
    - Create OAuth 2.0 credentials
-   - Add your domain to authorized redirect URIs
+   - Add your Netlify domain to authorized redirect URIs:
+     - Authorized JavaScript origins: `https://your-site.netlify.app`
+     - Authorized redirect URIs: `https://your-site.netlify.app/api/auth/google/callback`
 
 4. **Environment Variables in Netlify**
    Set these in your Netlify site settings:
    ```
    DATABASE_URL=your_neon_database_url
    NODE_ENV=production
+   URL=https://your-site.netlify.app
    PUSHER_APP_ID=your_pusher_app_id
    PUSHER_KEY=your_pusher_key
    PUSHER_SECRET=your_pusher_secret

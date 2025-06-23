@@ -7,6 +7,21 @@
   NODE_VERSION = "18"
 
 [[redirects]]
+  from = "/api/login"
+  to = "/.netlify/functions/auth/login"
+  status = 200
+
+[[redirects]]
+  from = "/api/logout"
+  to = "/.netlify/functions/auth/logout"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/*"
+  to = "/.netlify/functions/auth/auth/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
