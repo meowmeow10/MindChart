@@ -181,14 +181,25 @@ class MindMapApp {
             this.mindMap?.resetView();
         });
 
-        // Modal controls
-        document.getElementById('save-node').addEventListener('click', () => {
-            this.saveNodeEdit();
-        });
+        // Modal controls with error handling
+        const saveNodeBtn = document.getElementById('save-node');
+        const cancelEditBtn = document.getElementById('cancel-edit');
+        
+        if (saveNodeBtn) {
+            saveNodeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Save node clicked');
+                this.saveNodeEdit();
+            });
+        }
 
-        document.getElementById('cancel-edit').addEventListener('click', () => {
-            this.cancelNodeEdit();
-        });
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Cancel edit clicked');
+                this.cancelNodeEdit();
+            });
+        }
 
         // File operation handlers
         document.getElementById('save-mindmap').addEventListener('click', () => {
@@ -332,18 +343,29 @@ class MindMapApp {
     }
 
     editNode(node) {
+        console.log('Editing node:', node);
+        this.editingNode = node;
+        
         const modal = document.getElementById('node-editor');
         const textArea = document.getElementById('node-text');
         const colorInput = document.getElementById('node-color');
+
+        if (!modal || !textArea || !colorInput) {
+            console.error('Modal elements not found');
+            return;
+        }
 
         textArea.value = node.text || '';
         colorInput.value = node.color || '#e3f2fd';
         
         modal.classList.remove('hidden');
         modal.classList.add('fade-in');
-        textArea.focus();
-
-        this.editingNode = node;
+        
+        // Focus and select text after modal appears
+        setTimeout(() => {
+            textArea.focus();
+            textArea.select();
+        }, 100);
     }
 
     saveNodeEdit() {
