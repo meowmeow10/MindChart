@@ -59,11 +59,13 @@ class MindMap {
                 x: x - clickedNode.x,
                 y: y - clickedNode.y
             };
+            this.emit('debugInfo', `Dragging: Node ${clickedNode.id}`);
         } else {
             this.clearSelection();
             this.isPanning = true;
             this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
             this.canvas.style.cursor = 'grabbing';
+            this.emit('debugInfo', 'Panning canvas');
         }
     }
 
@@ -73,19 +75,33 @@ class MindMap {
         const y = (e.clientY - rect.top - this.panY) / this.zoom;
 
         if (this.isDragging && this.selectedNode) {
-            this.moveNode(this.selectedNode.id, x - this.dragOffset.x, y - this.dragOffset.y);
+            const newX = x - this.dragOffset.x;
+            const newY = y - this.dragOffset.y;
+            this.moveNode(this.selectedNode.id, newX, newY);
+            this.emit('debugInfo', `Moving: Node ${this.selectedNode.id} to (${Math.round(newX)}, ${Math.round(newY)})`);
         } else if (this.isPanning) {
             this.panX = e.clientX - this.panStart.x;
             this.panY = e.clientY - this.panStart.y;
             this.updateTransform();
+            this.emit('debugInfo', `Pan: (${Math.round(this.panX)}, ${Math.round(this.panY)})`);
         } else {
             // Update cursor based on what's under the mouse
             const nodeUnderMouse = this.getNodeAt(x, y);
             this.canvas.style.cursor = nodeUnderMouse ? 'move' : 'grab';
+            if (nodeUnderMouse) {
+                this.emit('debugInfo', `Hover: Node ${nodeUnderMouse.id} - "${nodeUnderMouse.text}"`);
+            } else {
+                this.emit('debugInfo', `Mouse: (${Math.round(x)}, ${Math.round(y)})`);
+            }
         }
     }
 
     handleMouseUp(e) {
+        if (this.isDragging) {
+            this.emit('debugInfo', `Drop: Node ${this.selectedNode?.id} at (${Math.round(this.selectedNode?.x)}, ${Math.round(this.selectedNode?.y)})`);
+        } else if (this.isPanning) {
+            this.emit('debugInfo', `Pan complete: (${Math.round(this.panX)}, ${Math.round(this.panY)})`);
+        }
         this.isDragging = false;
         this.isPanning = false;
         this.canvas.style.cursor = 'grab';
@@ -118,6 +134,7 @@ class MindMap {
             this.zoom = newZoom;
             this.updateTransform();
             this.emit('zoomChange', this.zoom);
+            this.emit('debugInfo', `Zoom: ${Math.round(this.zoom * 100)}% at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
         }
     }
 
@@ -242,6 +259,7 @@ class MindMap {
         for (const connection of this.connections.values()) {
             if ((connection.fromId === fromId && connection.toId === toId) ||
                 (connection.fromId === toId && connection.toId === fromId)) {
+                this.emit('debugInfo', `Connection already exists: ${fromId} ↔ ${toId}`);
                 return null;
             }
         }
@@ -254,6 +272,7 @@ class MindMap {
 
         this.connections.set(connection.id, connection);
         this.renderConnection(connection);
+        this.emit('debugInfo', `Connected: Node ${fromId} → Node ${toId}`);
         return connection;
     }
 
@@ -433,6 +452,9 @@ class MindMap {
 
     clear() {
         // Clear all nodes and connections
+        const nodeCount = this.nodes.size;
+        const connectionCount = this.connections.size;
+        
         this.nodes.clear();
         this.connections.clear();
         this.selectedNode = null;
@@ -450,6 +472,7 @@ class MindMap {
         // Create initial root node
         this.addNode(400, 300, 'Central Idea', '#ffeb3b');
         this.resetView();
+        this.emit('debugInfo', `Cleared: ${nodeCount} nodes, ${connectionCount} connections`);
     }
 
     getData() {

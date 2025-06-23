@@ -182,6 +182,18 @@ body {
     justify-content: space-between;
     align-items: center;
     font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+}
+
+.status-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.debug-info {
+    color: #aaa;
+    font-size: 0.8rem;
 }
 
 /* Node Styles */

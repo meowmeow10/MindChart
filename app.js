@@ -100,10 +100,16 @@ class MindMapApp {
     setupMindMapEvents() {
         this.mindMap.on('nodeSelected', (node) => {
             document.getElementById('delete-node').disabled = !node;
+            if (node) {
+                this.updateDebugInfo(`Selected: Node ${node.id} at (${Math.round(node.x)}, ${Math.round(node.y)})`);
+            } else {
+                this.updateDebugInfo('');
+            }
         });
 
         this.mindMap.on('nodeDoubleClick', (node) => {
             this.editNode(node);
+            this.updateDebugInfo(`Editing: Node ${node.id} - "${node.text}"`);
         });
 
         this.mindMap.on('statusUpdate', (message) => {
@@ -112,6 +118,10 @@ class MindMapApp {
 
         this.mindMap.on('zoomChange', (zoomLevel) => {
             document.getElementById('zoom-level').textContent = `${Math.round(zoomLevel * 100)}%`;
+        });
+
+        this.mindMap.on('debugInfo', (info) => {
+            this.updateDebugInfo(info);
         });
     }
 
@@ -124,11 +134,14 @@ class MindMapApp {
 
     saveMindMap() {
         try {
-            const xmlContent = this.xmlHandler.serialize(this.mindMap.getData());
+            const data = this.mindMap.getData();
+            const xmlContent = this.xmlHandler.serialize(data);
             this.downloadFile(xmlContent, 'mindmap.xml', 'application/xml');
             this.updateStatus('Mind map saved successfully');
+            this.updateDebugInfo(`Saved: ${data.nodes.length} nodes, ${data.connections.length} connections`);
         } catch (error) {
             this.updateStatus('Error saving mind map: ' + error.message);
+            this.updateDebugInfo(`Save error: ${error.message}`);
             console.error('Save error:', error);
         }
     }
@@ -142,8 +155,10 @@ class MindMapApp {
                 const data = this.xmlHandler.deserialize(e.target.result);
                 this.mindMap.loadData(data);
                 this.updateStatus(`Mind map loaded: ${file.name}`);
+                this.updateDebugInfo(`Loaded: ${data.nodes.length} nodes, ${data.connections.length} connections from ${file.name}`);
             } catch (error) {
                 this.updateStatus('Error loading mind map: ' + error.message);
+                this.updateDebugInfo(`Load error: ${error.message}`);
                 console.error('Load error:', error);
             }
         };
@@ -152,12 +167,15 @@ class MindMapApp {
 
     addNode() {
         const node = this.mindMap.addNode();
+        this.updateDebugInfo(`Added: Node ${node.id} at (${Math.round(node.x)}, ${Math.round(node.y)})`);
         this.editNode(node);
     }
 
     deleteSelectedNode() {
+        const selectedNode = this.mindMap.selectedNode;
         if (this.mindMap.deleteSelectedNode()) {
             this.updateStatus('Node deleted');
+            this.updateDebugInfo(`Deleted: Node ${selectedNode.id}`);
         }
     }
 
@@ -283,6 +301,10 @@ class MindMapApp {
                 document.getElementById('status-text').textContent = 'Ready';
             }
         }, 3000);
+    }
+
+    updateDebugInfo(info) {
+        document.getElementById('debug-info').textContent = info;
     }
 }
 
