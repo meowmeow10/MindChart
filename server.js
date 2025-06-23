@@ -73,8 +73,8 @@ app.post('/api/mindmaps', async (req, res) => {
     const mindMap = await storage.createMindMap(userId, title, data, isPublic);
     res.json(mindMap);
   } catch (error) {
-    console.error('Error creating mind map:', error);
-    res.status(500).json({ message: 'Failed to create mind map' });
+    console.error('Fault when creating mind map:', error);
+    res.status(500).json({ message: 'Fault: Failed to create mind map' });
   }
 });
 
