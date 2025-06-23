@@ -391,7 +391,7 @@ class MindMapApp {
             this.mindMap.updateNode(this.editingNode.id, { text, color });
             this.updateStatus('Node updated');
         } else {
-            this.updateStatus('Node text cannot be empty');
+            this.updateStatus('Fault: Node text cannot be empty');
             return;
         }
 

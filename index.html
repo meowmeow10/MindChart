@@ -1,401 +1,523 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindChart - Interactive Mind Mapping Tool</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <!-- Landing Page -->
-    <div id="landing-page" class="page">
-        <div class="landing-container">
-            <h1>MindChart</h1>
-            <p class="subtitle">Create, organize, and visualize your ideas</p>
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">🧠</div>
-                    <h3>Interactive Mind Maps</h3>
-                    <p>Create and connect ideas with intuitive drag-and-drop functionality</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">💾</div>
-                    <h3>Save & Load</h3>
-                    <p>Export your mind maps as XML files and load them anytime</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Zoom & Pan</h3>
-                    <p>Navigate large mind maps with smooth zoom and pan controls</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">💻</div>
-                    <h3>Free & Open Source</h3>
-                    <p>MindChart is Free and Open Source, under the GNL GPL 3.0</p>
-                </div>
-            </div>
-            <button id="go-to-app" class="primary-btn">Start Mind Mapping</button>
-            <button id="docs-btn-home" class="secondary-btn">📚 Documentation</button>
-        </div>
-        <p>MindChart Beta 1 - Made with <3 by Ben!</p>
-    </div>
-
-    <!-- Mind Map Application -->
-    <div id="app-page" class="page hidden">
-        <div class="toolbar">
-            <div class="toolbar-group">
-                <button id="new-mindmap" class="btn" title="New Mind Map (Ctrl+N)">New</button>
-                <button id="templates-btn" class="btn" title="Choose Template">Templates</button>
-                <div class="dropdown">
-                    <button class="btn">Save ▼</button>
-                    <div class="dropdown-content">
-                        <button id="save-mindmap">Save XML</button>
-                        <button id="save-local">Save Locally</button>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MindChart - Interactive Mind Mapping Tool</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <!-- Landing Page -->
+        <div id="landing-page" class="page">
+            <div class="landing-container">
+                <h1>MindChart</h1>
+                <p class="subtitle">
+                    Create, organize, and visualize your ideas
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">🧠</div>
+                        <h3>Interactive Mind Maps</h3>
+                        <p>
+                            Create and connect ideas with intuitive
+                            drag-and-drop functionality
+                        </p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💾</div>
+                        <h3>Save & Load</h3>
+                        <p>
+                            Export your mind maps as XML files and load them
+                            anytime
+                        </p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Zoom & Pan</h3>
+                        <p>
+                            Navigate large mind maps with smooth zoom and pan
+                            controls
+                        </p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💻</div>
+                        <h3>Free & Open Source</h3>
+                        <p>
+                            MindChart is Free and Open Source, under the GNL GPL
+                            3.0
+                        </p>
                     </div>
                 </div>
-                <div class="dropdown">
-                    <button class="btn">Load ▼</button>
-                    <div class="dropdown-content">
-                        <button id="load-btn">Load XML</button>
-                        <button id="load-local">Load Local</button>
-                        <button id="clear-local">Clear Storage</button>
-                    </div>
-                </div>
-                <input type="file" id="load-mindmap" accept=".xml" style="display: none;">
+                <button id="go-to-app" class="primary-btn">
+                    Start Mind Mapping
+                </button>
+                <button id="docs-btn-home" class="secondary-btn">
+                    📚 Documentation
+                </button>
             </div>
-            <div class="toolbar-group">
-                <button id="login-btn" class="btn primary">Login</button>
-                <button id="save-cloud" class="btn" title="Save to Cloud" disabled>Save Cloud</button>
-                <button id="share-btn" class="btn" title="Share Mind Map" disabled>Share</button>
-                <button id="collaborate-btn" class="btn" title="Join Collaboration" disabled>Join Room</button>
-            </div>
-            <div class="toolbar-group">
-                <button id="add-node" class="btn" title="Add Node (Enter)">Add Node</button>
-                <button id="delete-node" class="btn" title="Delete Selected (Del)" disabled>Delete</button>
-                <button id="connect-mode" class="btn" title="Toggle Connection Mode">Connect Mode</button>
-            </div>
-            <div class="toolbar-group">
-                <button id="zoom-in" class="btn" title="Zoom In (Ctrl++)">Zoom In</button>
-                <button id="zoom-out" class="btn" title="Zoom Out (Ctrl+-)">Zoom Out</button>
-                <button id="reset-view" class="btn" title="Reset View (Ctrl+0)">Reset View</button>
-            </div>
-            <div class="toolbar-group">
-                <button id="help-shortcuts" class="btn">Help (?)</button>
-                <button id="docs-btn-app" class="btn">📚 Docs</button>
-                <button id="back-to-home" class="btn secondary">Back to Home</button>
-            </div>
+            <p>MindChart Beta 1 - Made with <3 by Ben!</p>
         </div>
 
-        <div class="canvas-container">
-            <svg id="mindmap-canvas" width="100%" height="100%">
-                <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                            refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
-                    </marker>
-                </defs>
-                <g id="canvas-group">
-                    <!-- Mind map content will be rendered here -->
-                </g>
-            </svg>
+        <!-- Mind Map Application -->
+        <div id="app-page" class="page hidden">
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button
+                        id="new-mindmap"
+                        class="btn"
+                        title="New Mind Map (Ctrl+N)"
+                    >
+                        New
+                    </button>
+                    <button
+                        id="templates-btn"
+                        class="btn"
+                        title="Choose Template"
+                    >
+                        Templates
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn">Save ▼</button>
+                        <div class="dropdown-content">
+                            <button id="save-mindmap">Save XML</button>
+                            <button id="save-local">Save Locally</button>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn">Load ▼</button>
+                        <div class="dropdown-content">
+                            <button id="load-btn">Load XML</button>
+                            <button id="load-local">Load Local</button>
+                            <button id="clear-local">Clear Storage</button>
+                        </div>
+                    </div>
+                    <input
+                        type="file"
+                        id="load-mindmap"
+                        accept=".xml"
+                        style="display: none"
+                    />
+                </div>
+                <div class="toolbar-group">
+                    <button id="login-btn" class="btn primary">Login</button>
+                    <button
+                        id="save-cloud"
+                        class="btn"
+                        title="Save to Cloud"
+                        disabled
+                    >
+                        Save Cloud
+                    </button>
+                    <button
+                        id="share-btn"
+                        class="btn"
+                        title="Share Mind Map"
+                        disabled
+                    >
+                        Share
+                    </button>
+                    <button
+                        id="collaborate-btn"
+                        class="btn"
+                        title="Join Collaboration"
+                        disabled
+                    >
+                        Join Room
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="add-node" class="btn" title="Add Node (Enter)">
+                        Add Node
+                    </button>
+                    <button
+                        id="delete-node"
+                        class="btn"
+                        title="Delete Selected (Del)"
+                        disabled
+                    >
+                        Delete
+                    </button>
+                    <button
+                        id="connect-mode"
+                        class="btn"
+                        title="Toggle Connection Mode"
+                    >
+                        Connect Mode
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="zoom-in" class="btn" title="Zoom In (Ctrl++)">
+                        Zoom In
+                    </button>
+                    <button id="zoom-out" class="btn" title="Zoom Out (Ctrl+-)">
+                        Zoom Out
+                    </button>
+                    <button
+                        id="reset-view"
+                        class="btn"
+                        title="Reset View (Ctrl+0)"
+                    >
+                        Reset View
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="help-shortcuts" class="btn">Help (?)</button>
+                    <button id="docs-btn-app" class="btn">📚 Docs</button>
+                    <button id="back-to-home" class="btn secondary">
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <svg id="mindmap-canvas" width="100%" height="100%">
+                    <defs>
+                        <marker
+                            id="arrowhead"
+                            markerWidth="10"
+                            markerHeight="7"
+                            refX="9"
+                            refY="3.5"
+                            orient="auto"
+                        >
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+                        </marker>
+                    </defs>
+                    <g id="canvas-group">
+                        <!-- Mind map content will be rendered here -->
+                    </g>
+                </svg>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-info">
+                    <span id="status-text">Ready.</span>
+                    <span id="debug-info" class="debug-info"></span>
+                </div>
+                <span id="zoom-level">100%</span>
+            </div>
         </div>
 
-        <div class="status-bar">
-            <div class="status-info">
-                <span id="status-text">Ready.</span>
-                <span id="debug-info" class="debug-info"></span>
-            </div>
-            <span id="zoom-level">100%</span>
-        </div>
-    </div>
-
-    <!-- Node Editor Modal -->
-    <div id="node-editor" class="modal hidden">
-        <div class="modal-content">
-            <h3>Edit Node</h3>
-            <textarea id="node-text" placeholder="Enter node text..." rows="3"></textarea>
-            <div class="color-picker">
-                <label>Node Colour:</label>
-                <input type="color" id="node-color" value="#e3f2fd">
-            </div>
-            <div class="modal-buttons">
-                <button id="save-node" class="btn primary" type="button">Save</button>
-                <button id="cancel-edit" class="btn" type="button">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Help Modal -->
-    <div id="shortcuts-modal" class="modal hidden">
-        <div class="modal-content shortcuts-content">
-            <h3>Keyboard Shortcuts & Tips</h3>
-            <div class="shortcuts-grid">
-                <div class="shortcut-section">
-                    <h4>File Operations</h4>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + N</span>
-                        <span class="shortcut-desc">New mind map</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + S</span>
-                        <span class="shortcut-desc">Save as XML</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + O</span>
-                        <span class="shortcut-desc">Load XML file</span>
-                    </div>
+        <!-- Node Editor Modal -->
+        <div id="node-editor" class="modal hidden">
+            <div class="modal-content">
+                <h3>Edit Node</h3>
+                <textarea
+                    id="node-text"
+                    placeholder="Enter node text..."
+                    rows="3"
+                ></textarea>
+                <div class="color-picker">
+                    <label>Node Colour:</label>
+                    <input type="color" id="node-color" value="#e3f2fd" />
                 </div>
-
-                <div class="shortcut-section">
-                    <h4>Node Operations</h4>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Enter</span>
-                        <span class="shortcut-desc">Add new node</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Delete</span>
-                        <span class="shortcut-desc">Delete selected</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Double Click</span>
-                        <span class="shortcut-desc">Edit node text</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Drag</span>
-                        <span class="shortcut-desc">Move nodes</span>
-                    </div>
+                <div class="modal-buttons">
+                    <button id="save-node" class="btn primary" type="button">
+                        Save
+                    </button>
+                    <button id="cancel-edit" class="btn" type="button">
+                        Cancel
+                    </button>
                 </div>
-
-                <div class="shortcut-section">
-                    <h4>View Controls</h4>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + +</span>
-                        <span class="shortcut-desc">Zoom in</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + -</span>
-                        <span class="shortcut-desc">Zoom out</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Ctrl + 0</span>
-                        <span class="shortcut-desc">Reset view</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Mouse Wheel</span>
-                        <span class="shortcut-desc">Zoom at cursor</span>
-                    </div>
-                </div>
-
-                <div class="shortcut-section">
-                    <h4>General</h4>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Escape</span>
-                        <span class="shortcut-desc">Clear selection / Cancel</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">?</span>
-                        <span class="shortcut-desc">Show this help</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tips-section">
-                <h4>💡 Tips</h4>
-                <ul class="tips-list">
-                    <li>Use <strong>Connect Mode</strong> to create custom connections between nodes</li>
-                    <li>Click connections to select and delete them</li>
-                    <li>Pan the canvas by dragging empty space</li>
-                    <li>New nodes automatically connect to selected nodes</li>
-                    <li>Watch debug info in the status bar for detailed feedback</li>
-                </ul>
-            </div>
-
-            <div class="modal-buttons">
-                <button id="close-shortcuts" class="btn primary">Got it!</button>
             </div>
         </div>
-    </div>
 
-    <!-- Templates Modal -->
-    <div id="templates-modal" class="modal hidden">
-        <div class="modal-content templates-content">
-            <h3>Choose a Template</h3>
-            <div class="templates-grid">
-                <div class="template-item" data-template="project-planning">
-                    <div class="template-icon">📋</div>
-                    <h4>Project Planning</h4>
-                    <p>Organize project goals, tasks, and milestones</p>
-                </div>
-                
-                <div class="template-item" data-template="decision-making">
-                    <div class="template-icon">⚖️</div>
-                    <h4>Decision Making</h4>
-                    <p>Weigh pros and cons for important decisions</p>
-                </div>
-                
-                <div class="template-item" data-template="learning">
-                    <div class="template-icon">📚</div>
-                    <h4>Learning Map</h4>
-                    <p>Structure knowledge and learning objectives</p>
-                </div>
-                
-                <div class="template-item" data-template="business-strategy">
-                    <div class="template-icon">💼</div>
-                    <h4>Business Strategy</h4>
-                    <p>Plan business goals and strategies</p>
-                </div>
-                
-                <div class="template-item" data-template="swot-analysis">
-                    <div class="template-icon">🎯</div>
-                    <h4>SWOT Analysis</h4>
-                    <p>Analyze strengths, weaknesses, opportunities, threats</p>
-                </div>
-                
-                <div class="template-item" data-template="brainstorming">
-                    <div class="template-icon">💡</div>
-                    <h4>Brainstorming</h4>
-                    <p>Generate and organize creative ideas</p>
-                </div>
-                
-                <div class="template-item" data-template="meeting-notes">
-                    <div class="template-icon">📝</div>
-                    <h4>Meeting Notes</h4>
-                    <p>Structure meeting agenda and action items</p>
-                </div>
-                
-                <div class="template-item" data-template="problem-solving">
-                    <div class="template-icon">🔧</div>
-                    <h4>Problem Solving</h4>
-                    <p>Break down problems and find solutions</p>
-                </div>
-            </div>
+        <!-- Keyboard Shortcuts Help Modal -->
+        <div id="shortcuts-modal" class="modal hidden">
+            <div class="modal-content shortcuts-content">
+                <h3>Keyboard Shortcuts & Tips</h3>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-section">
+                        <h4>File Operations</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + N</span>
+                            <span class="shortcut-desc">New mind map</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + S</span>
+                            <span class="shortcut-desc">Save as XML</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + O</span>
+                            <span class="shortcut-desc">Load XML file</span>
+                        </div>
+                    </div>
 
-            <div class="modal-buttons">
-                <button id="cancel-template" class="btn">Cancel</button>
-            </div>
-        </div>
-    </div>
+                    <div class="shortcut-section">
+                        <h4>Node Operations</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Enter</span>
+                            <span class="shortcut-desc">Add new node</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Delete</span>
+                            <span class="shortcut-desc">Delete selected</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Double Click</span>
+                            <span class="shortcut-desc">Edit node text</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Drag</span>
+                            <span class="shortcut-desc">Move nodes</span>
+                        </div>
+                    </div>
 
-    <!-- Templates Modal -->
-    <div id="templates-modal" class="modal hidden">
-        <div class="modal-content templates-content">
-            <h3>Choose a Template</h3>
-            <div class="templates-grid">
-                <div class="template-card" data-template="blank">
-                    <div class="template-icon">📋</div>
-                    <h4>Blank Canvas</h4>
-                    <p>Start with a single central idea node</p>
-                </div>
-                
-                <div class="template-card" data-template="project">
-                    <div class="template-icon">🚀</div>
-                    <h4>Project Planning</h4>
-                    <p>Goals, tasks, resources, and timeline structure</p>
-                </div>
-                
-                <div class="template-card" data-template="brainstorm">
-                    <div class="template-icon">💡</div>
-                    <h4>Brainstorming</h4>
-                    <p>Ideas, pros/cons, and action items layout</p>
-                </div>
-                
-                <div class="template-card" data-template="study">
-                    <div class="template-icon">📚</div>
-                    <h4>Study Notes</h4>
-                    <p>Topic breakdown with key concepts and details</p>
-                </div>
-                
-                <div class="template-card" data-template="meeting">
-                    <div class="template-icon">👥</div>
-                    <h4>Meeting Notes</h4>
-                    <p>Agenda, discussion points, and action items</p>
-                </div>
-                
-                <div class="template-card" data-template="decision">
-                    <div class="template-icon">⚖️</div>
-                    <h4>Decision Making</h4>
-                    <p>Options, criteria, pros/cons analysis</p>
-                </div>
-                
-                <div class="template-card" data-template="swot">
-                    <div class="template-icon">📊</div>
-                    <h4>SWOT Analysis</h4>
-                    <p>Strengths, weaknesses, opportunities, threats</p>
-                </div>
-                
-                <div class="template-card" data-template="problem">
-                    <div class="template-icon">🔧</div>
-                    <h4>Problem Solving</h4>
-                    <p>Problem definition, causes, and solutions</p>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="cancel-template" class="btn">Cancel</button>
-            </div>
-        </div>
-    </div>
+                    <div class="shortcut-section">
+                        <h4>View Controls</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + +</span>
+                            <span class="shortcut-desc">Zoom in</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + -</span>
+                            <span class="shortcut-desc">Zoom out</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Ctrl + 0</span>
+                            <span class="shortcut-desc">Reset view</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Mouse Wheel</span>
+                            <span class="shortcut-desc">Zoom at cursor</span>
+                        </div>
+                    </div>
 
-    <!-- Share Modal -->
-    <div id="share-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Share Mind Map</h3>
-            <div class="share-instructions">
-                <p><strong>How to collaborate:</strong></p>
-                <ol>
-                    <li>Copy the share code below</li>
-                    <li>Send it to your collaborators</li>
-                    <li>They can use "Join Room" to join your mind map</li>
-                </ol>
-            </div>
-            <div class="share-options">
-                <div class="share-option">
-                    <label>Share Code:</label>
-                    <div class="share-code-container">
-                        <input type="text" id="share-code" readonly>
-                        <button id="copy-share-code" class="btn">Copy Code</button>
+                    <div class="shortcut-section">
+                        <h4>General</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">Escape</span>
+                            <span class="shortcut-desc"
+                                >Clear selection / Cancel</span
+                            >
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-key">?</span>
+                            <span class="shortcut-desc">Show this help</span>
+                        </div>
                     </div>
                 </div>
-                <div class="share-option">
-                    <label>
-                        <input type="checkbox" id="make-public"> Make publicly accessible
-                    </label>
+
+                <div class="tips-section">
+                    <h4>💡 Tips</h4>
+                    <ul class="tips-list">
+                        <li>
+                            Use <strong>Connect Mode</strong> to create custom
+                            connections between nodes
+                        </li>
+                        <li>Click connections to select and delete them</li>
+                        <li>Pan the canvas by dragging empty space</li>
+                        <li>
+                            New nodes automatically connect to selected nodes
+                        </li>
+                        <li>
+                            Watch debug info in the status bar for detailed
+                            feedback
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="close-shortcuts" class="btn primary">
+                        Got it!
+                    </button>
                 </div>
             </div>
-            <div class="modal-buttons">
-                <button id="close-share-modal" class="btn">Close</button>
+        </div>
+
+        <!-- Templates Modal -->
+        <div id="templates-modal" class="modal hidden">
+            <div class="modal-content templates-content">
+                <h3>Choose a Template</h3>
+                <div class="templates-grid">
+                    <div class="template-item" data-template="project-planning">
+                        <div class="template-icon">📋</div>
+                        <h4>Project Planning</h4>
+                        <p>Organize project goals, tasks, and milestones</p>
+                    </div>
+
+                    <div class="template-item" data-template="decision-making">
+                        <div class="template-icon">⚖️</div>
+                        <h4>Decision Making</h4>
+                        <p>Weigh pros and cons for important decisions</p>
+                    </div>
+
+                    <div class="template-item" data-template="learning">
+                        <div class="template-icon">📚</div>
+                        <h4>Learning Map</h4>
+                        <p>Structure knowledge and learning objectives</p>
+                    </div>
+
+                    <div
+                        class="template-item"
+                        data-template="business-strategy"
+                    >
+                        <div class="template-icon">💼</div>
+                        <h4>Business Strategy</h4>
+                        <p>Plan business goals and strategies</p>
+                    </div>
+
+                    <div class="template-item" data-template="swot-analysis">
+                        <div class="template-icon">🎯</div>
+                        <h4>SWOT Analysis</h4>
+                        <p>
+                            Analyze strengths, weaknesses, opportunities,
+                            threats
+                        </p>
+                    </div>
+
+                    <div class="template-item" data-template="brainstorming">
+                        <div class="template-icon">💡</div>
+                        <h4>Brainstorming</h4>
+                        <p>Generate and organize creative ideas</p>
+                    </div>
+
+                    <div class="template-item" data-template="meeting-notes">
+                        <div class="template-icon">📝</div>
+                        <h4>Meeting Notes</h4>
+                        <p>Structure meeting agenda and action items</p>
+                    </div>
+
+                    <div class="template-item" data-template="problem-solving">
+                        <div class="template-icon">🔧</div>
+                        <h4>Problem Solving</h4>
+                        <p>Break down problems and find solutions</p>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="cancel-template" class="btn">Cancel</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Join Room Modal -->
-    <div id="join-room-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Join Collaboration Room</h3>
-            <div class="join-room-form">
-                <label for="room-code">Enter Share Code:</label>
-                <input type="text" id="room-code" placeholder="Enter share code">
-            </div>
-            <div class="modal-buttons">
-                <button id="join-room-btn" class="btn primary">Join</button>
-                <button id="cancel-join-room" class="btn">Cancel</button>
+        <!-- Templates Modal -->
+        <div id="templates-modal" class="modal hidden">
+            <div class="modal-content templates-content">
+                <h3>Choose a Template</h3>
+                <div class="templates-grid">
+                    <div class="template-card" data-template="blank">
+                        <div class="template-icon">📋</div>
+                        <h4>Blank Canvas</h4>
+                        <p>Start with a single central idea node</p>
+                    </div>
+
+                    <div class="template-card" data-template="project">
+                        <div class="template-icon">🚀</div>
+                        <h4>Project Planning</h4>
+                        <p>Goals, tasks, resources, and timeline structure</p>
+                    </div>
+
+                    <div class="template-card" data-template="brainstorm">
+                        <div class="template-icon">💡</div>
+                        <h4>Brainstorming</h4>
+                        <p>Ideas, pros/cons, and action items layout</p>
+                    </div>
+
+                    <div class="template-card" data-template="study">
+                        <div class="template-icon">📚</div>
+                        <h4>Study Notes</h4>
+                        <p>Topic breakdown with key concepts and details</p>
+                    </div>
+
+                    <div class="template-card" data-template="meeting">
+                        <div class="template-icon">👥</div>
+                        <h4>Meeting Notes</h4>
+                        <p>Agenda, discussion points, and action items</p>
+                    </div>
+
+                    <div class="template-card" data-template="decision">
+                        <div class="template-icon">⚖️</div>
+                        <h4>Decision Making</h4>
+                        <p>Options, criteria, pros/cons analysis</p>
+                    </div>
+
+                    <div class="template-card" data-template="swot">
+                        <div class="template-icon">📊</div>
+                        <h4>SWOT Analysis</h4>
+                        <p>Strengths, weaknesses, opportunities, threats</p>
+                    </div>
+
+                    <div class="template-card" data-template="problem">
+                        <div class="template-icon">🔧</div>
+                        <h4>Problem Solving</h4>
+                        <p>Problem definition, causes, and solutions</p>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="cancel-template" class="btn">Cancel</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="xmlhandler.js"></script>
-    <script src="mindmap.js"></script>
-    <!-- Pusher for real-time collaboration -->
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script>
-      // Configure Pusher credentials - replace with your actual values
-      window.PUSHER_APP_KEY = 'bfe602715037e97e8dca';
-      window.PUSHER_CLUSTER = 'eu'; // or your cluster
-    </script>
-    
-    <script src="client/collaboration.js"></script>
-    <script src="client/collaboration-websocket.js"></script>
-    <script src="client/pusher-collaboration.js"></script>
-    <script src="app.js"></script>
-</body>
+        <!-- Share Modal -->
+        <div id="share-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Share Mind Map</h3>
+                <div class="share-instructions">
+                    <p><strong>How to collaborate:</strong></p>
+                    <ol>
+                        <li>Copy the share code below</li>
+                        <li>Send it to your collaborators</li>
+                        <li>They can use "Join Room" to join your mind map</li>
+                    </ol>
+                </div>
+                <div class="share-options">
+                    <div class="share-option">
+                        <label>Share Code:</label>
+                        <div class="share-code-container">
+                            <input type="text" id="share-code" readonly />
+                            <button id="copy-share-code" class="btn">
+                                Copy Code
+                            </button>
+                        </div>
+                    </div>
+                    <div class="share-option">
+                        <label>
+                            <input type="checkbox" id="make-public" /> Make
+                            publicly accessible
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button id="close-share-modal" class="btn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Join Room Modal -->
+        <div id="join-room-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Join Collaboration Room</h3>
+                <div class="join-room-form">
+                    <label for="room-code">Enter Share Code:</label>
+                    <input
+                        type="text"
+                        id="room-code"
+                        placeholder="Enter share code"
+                    />
+                </div>
+                <div class="modal-buttons">
+                    <button id="join-room-btn" class="btn primary">Join</button>
+                    <button id="cancel-join-room" class="btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="xmlhandler.js"></script>
+        <script src="mindmap.js"></script>
+        <!-- Pusher for real-time collaboration -->
+        <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+        <script>
+            // Configure Pusher credentials - replace with your actual values
+            window.PUSHER_APP_KEY = "bfe602715037e97e8dca";
+            window.PUSHER_CLUSTER = "eu"; // or your cluster
+        </script>
+
+        <script src="client/collaboration.js"></script>
+        <script src="client/collaboration-websocket.js"></script>
+        <script src="client/pusher-collaboration.js"></script>
+        <script src="app.js"></script>
+    </body>
 </html>
