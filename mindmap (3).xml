@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mindmap version="1.0" created="2025-06-23T18:12:11.856Z">
+  <view zoom="1" panX="276" panY="30"/>
+  <nodes>
+    <node id="1" x="400" y="300" width="160" height="60" color="#ffeb3b">
+      <text>Business Strategy</text>
+    </node>
+    <node id="2" x="250" y="180" width="140" height="60" color="#e3f2fd">
+      <text>Vision &amp; Mission</text>
+    </node>
+    <node id="3" x="550" y="180" width="140" height="60" color="#e8f5e8">
+      <text>Market Analysis</text>
+    </node>
+    <node id="4" x="200" y="420" width="120" height="60" color="#fff3e0">
+      <text>Operations</text>
+    </node>
+    <node id="5" x="400" y="450" width="140" height="60" color="#fce4ec">
+      <text>Financial Goals</text>
+    </node>
+    <node id="6" x="600" y="420" width="120" height="60" color="#f3e5f5">
+      <text>Marketing</text>
+    </node>
+    <node id="7" x="150" y="130" width="90" height="50" color="#e1f5fe">
+      <text>Values</text>
+    </node>
+    <node id="8" x="350" y="130" width="90" height="50" color="#e1f5fe">
+      <text>Goals</text>
+    </node>
+    <node id="9" x="650" y="130" width="100" height="50" color="#f1f8e9">
+      <text>Competitors</text>
+    </node>
+    <node id="10" x="550" y="100" width="110" height="50" color="#f1f8e9">
+      <text>Target Market</text>
+    </node>
+  </nodes>
+  <connections>
+    <connection id="1" fromId="1" toId="2"/>
+    <connection id="2" fromId="1" toId="3"/>
+    <connection id="3" fromId="1" toId="4"/>
+    <connection id="4" fromId="1" toId="5"/>
+    <connection id="5" fromId="1" toId="6"/>
+    <connection id="6" fromId="2" toId="7"/>
+    <connection id="7" fromId="2" toId="8"/>
+    <connection id="8" fromId="3" toId="9"/>
+    <connection id="9" fromId="3" toId="10"/>
+  </connections>
+</mindmap>

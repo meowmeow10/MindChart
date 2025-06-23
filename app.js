@@ -990,7 +990,7 @@ class MindMapApp {
                 }
             }
         } catch (error) {
-            console.error('Error loading from local storage:', error);
+            console.error('Fault loading from local storage:', error);
         }
     }
     
