@@ -46,6 +46,9 @@ class MindMap {
 
         // Prevent context menu
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Add canvas title for tooltip
+        this.canvas.setAttribute('title', 'Double-click nodes to edit • Drag to move • Scroll to zoom • Drag empty space to pan');
     }
 
     handleMouseDown(e) {

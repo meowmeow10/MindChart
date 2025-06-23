@@ -37,22 +37,23 @@
     <div id="app-page" class="page hidden">
         <div class="toolbar">
             <div class="toolbar-group">
-                <button id="new-mindmap" class="btn">New</button>
-                <button id="save-mindmap" class="btn">Save XML</button>
+                <button id="new-mindmap" class="btn" title="New Mind Map (Ctrl+N)">New</button>
+                <button id="save-mindmap" class="btn" title="Save Mind Map (Ctrl+S)">Save XML</button>
                 <input type="file" id="load-mindmap" accept=".xml" style="display: none;">
-                <button id="load-btn" class="btn">Load XML</button>
+                <button id="load-btn" class="btn" title="Load Mind Map (Ctrl+O)">Load XML</button>
             </div>
             <div class="toolbar-group">
-                <button id="add-node" class="btn">Add Node</button>
-                <button id="delete-node" class="btn" disabled>Delete</button>
-                <button id="connect-mode" class="btn">Connect Mode</button>
+                <button id="add-node" class="btn" title="Add Node (Enter)">Add Node</button>
+                <button id="delete-node" class="btn" title="Delete Selected (Del)" disabled>Delete</button>
+                <button id="connect-mode" class="btn" title="Toggle Connection Mode">Connect Mode</button>
             </div>
             <div class="toolbar-group">
-                <button id="zoom-in" class="btn">Zoom In</button>
-                <button id="zoom-out" class="btn">Zoom Out</button>
-                <button id="reset-view" class="btn">Reset View</button>
+                <button id="zoom-in" class="btn" title="Zoom In (Ctrl++)">Zoom In</button>
+                <button id="zoom-out" class="btn" title="Zoom Out (Ctrl+-)">Zoom Out</button>
+                <button id="reset-view" class="btn" title="Reset View (Ctrl+0)">Reset View</button>
             </div>
             <div class="toolbar-group">
+                <button id="help-shortcuts" class="btn">Help (?)</button>
                 <button id="back-to-home" class="btn secondary">Back to Home</button>
             </div>
         </div>
@@ -92,6 +93,97 @@
             <div class="modal-buttons">
                 <button id="save-node" class="btn primary">Save</button>
                 <button id="cancel-edit" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div id="shortcuts-modal" class="modal hidden">
+        <div class="modal-content shortcuts-content">
+            <h3>Keyboard Shortcuts & Tips</h3>
+            <div class="shortcuts-grid">
+                <div class="shortcut-section">
+                    <h4>File Operations</h4>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + N</span>
+                        <span class="shortcut-desc">New mind map</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + S</span>
+                        <span class="shortcut-desc">Save as XML</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + O</span>
+                        <span class="shortcut-desc">Load XML file</span>
+                    </div>
+                </div>
+
+                <div class="shortcut-section">
+                    <h4>Node Operations</h4>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Enter</span>
+                        <span class="shortcut-desc">Add new node</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Delete</span>
+                        <span class="shortcut-desc">Delete selected</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Double Click</span>
+                        <span class="shortcut-desc">Edit node text</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Drag</span>
+                        <span class="shortcut-desc">Move nodes</span>
+                    </div>
+                </div>
+
+                <div class="shortcut-section">
+                    <h4>View Controls</h4>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + +</span>
+                        <span class="shortcut-desc">Zoom in</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + -</span>
+                        <span class="shortcut-desc">Zoom out</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + 0</span>
+                        <span class="shortcut-desc">Reset view</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Mouse Wheel</span>
+                        <span class="shortcut-desc">Zoom at cursor</span>
+                    </div>
+                </div>
+
+                <div class="shortcut-section">
+                    <h4>General</h4>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Escape</span>
+                        <span class="shortcut-desc">Clear selection / Cancel</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">?</span>
+                        <span class="shortcut-desc">Show this help</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tips-section">
+                <h4>💡 Tips</h4>
+                <ul class="tips-list">
+                    <li>Use <strong>Connect Mode</strong> to create custom connections between nodes</li>
+                    <li>Click connections to select and delete them</li>
+                    <li>Pan the canvas by dragging empty space</li>
+                    <li>New nodes automatically connect to selected nodes</li>
+                    <li>Watch debug info in the status bar for detailed feedback</li>
+                </ul>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="close-shortcuts" class="btn primary">Got it!</button>
             </div>
         </div>
     </div>

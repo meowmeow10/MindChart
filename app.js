@@ -52,6 +52,14 @@ class MindMapApp {
             this.toggleConnectMode();
         });
 
+        document.getElementById('help-shortcuts').addEventListener('click', () => {
+            this.showShortcutsHelp();
+        });
+
+        document.getElementById('close-shortcuts').addEventListener('click', () => {
+            this.hideShortcutsHelp();
+        });
+
         // Zoom controls
         document.getElementById('zoom-in').addEventListener('click', () => {
             this.mindMap?.zoomIn();
@@ -259,7 +267,9 @@ class MindMapApp {
                 e.preventDefault();
                 break;
             case 'Escape':
-                if (!document.getElementById('node-editor').classList.contains('hidden')) {
+                if (!document.getElementById('shortcuts-modal').classList.contains('hidden')) {
+                    this.hideShortcutsHelp();
+                } else if (!document.getElementById('node-editor').classList.contains('hidden')) {
                     this.cancelNodeEdit();
                 } else {
                     this.mindMap.clearSelection();
@@ -303,6 +313,13 @@ class MindMapApp {
                     e.preventDefault();
                 }
                 break;
+            case '?':
+            case '/':
+                if (!e.ctrlKey && !e.metaKey) {
+                    this.showShortcutsHelp();
+                    e.preventDefault();
+                }
+                break;
         }
     }
 
@@ -333,6 +350,18 @@ class MindMapApp {
 
     toggleConnectMode() {
         this.mindMap.toggleConnectMode();
+    }
+
+    showShortcutsHelp() {
+        const modal = document.getElementById('shortcuts-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('fade-in');
+        this.updateDebugInfo('Showing keyboard shortcuts help');
+    }
+
+    hideShortcutsHelp() {
+        document.getElementById('shortcuts-modal').classList.add('hidden');
+        this.updateDebugInfo('');
     }
 }
 
