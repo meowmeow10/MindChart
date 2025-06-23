@@ -1,8 +1,8 @@
-# MindMapper - Interactive Mind Mapping Tool
+# MindChart - Interactive Mind Mapping Tool
 
 ## Overview
 
-MindMapper is a browser-based interactive mind mapping application that allows users to create, organize, and visualize ideas through an intuitive drag-and-drop interface. The application features a clean landing page and a powerful mind mapping canvas with zoom, pan, node management, and connection editing capabilities. Users can save their work as XML files and reload them later. The application includes comprehensive debugging information and real-time feedback for all user interactions.
+MindChart is a browser-based interactive mind mapping application that allows users to create, organize, and visualize ideas through an intuitive drag-and-drop interface. The application features a clean landing page and a powerful mind mapping canvas with zoom, pan, node management, and connection editing capabilities. Users can save their work as XML files and reload them later. The application includes comprehensive debugging information and real-time feedback for all user interactions.
 
 ## System Architecture
 
@@ -23,13 +23,13 @@ This is a client-side focused web application with a minimal server setup:
 
 ### 1. Frontend Components
 
-**MindMapApp (app.js)**
+**MindChartApp (app.js)**
 - Main application controller
 - Manages page navigation between landing and app views
 - Handles high-level user interactions and file operations
 - Coordinates between different modules
 
-**MindMap (mindmap.js)**
+**MindEngine (mindmap.js)**
 - Core mind mapping engine
 - Manages nodes, connections, and canvas interactions
 - Handles mouse/touch events for dragging, panning, and zooming
@@ -67,7 +67,7 @@ This is a client-side focused web application with a minimal server setup:
 ## Data Flow
 
 1. **Application Initialization:**
-   - MindMapApp instantiated on page load
+   - MindChartApp instantiated on page load
    - Landing page displayed by default
    - Event listeners attached to UI elements
 
