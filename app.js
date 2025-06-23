@@ -947,8 +947,8 @@ class MindMapApp {
             this.updateStatus(`Saved locally: ${name}`);
             
         } catch (error) {
-            console.error('Error saving to local storage:', error);
-            this.updateStatus('Failed to save locally');
+            console.error('Fault saving to local storage:', error);
+            this.updateStatus('Fault: Failed to save locally');
         }
     }
     
@@ -999,7 +999,7 @@ class MindMapApp {
             const saved = localStorage.getItem('mindmaps');
             return saved ? JSON.parse(saved) : {};
         } catch (error) {
-            console.error('Error getting saved mindmaps:', error);
+            console.error('Fault when getting saved mindmaps:', error);
             return {};
         }
     }
@@ -1009,7 +1009,7 @@ class MindMapApp {
         const mapsList = Object.values(savedMaps);
         
         if (mapsList.length === 0) {
-            this.updateStatus('No saved mindmaps found');
+            this.updateStatus('Fault: No saved mindmaps found');
             return;
         }
         
@@ -1234,7 +1234,7 @@ class MindMapApp {
             // Verify the share code exists
             const response = await fetch(`/api/mindmaps/share/${roomCode}`);
             if (!response.ok) {
-                throw new Error('Invalid share code');
+                throw new Error('Fault: Invalid share code');
             }
 
             const mindMapInfo = await response.json();
