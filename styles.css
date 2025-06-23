@@ -126,6 +126,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 0.9rem;
+    position: relative;
 }
 
 .btn:hover {
