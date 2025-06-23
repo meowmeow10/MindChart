@@ -728,4 +728,109 @@ class MindMap {
             this.eventHandlers[event].forEach(handler => handler(data));
         }
     }
+
+    // Export functionality
+    exportToPNG(filename = 'mindmap.png', backgroundColor = '#ffffff') {
+        this.exportToImage(filename, 'image/png', backgroundColor);
+    }
+
+    exportToJPEG(filename = 'mindmap.jpg', backgroundColor = '#ffffff') {
+        this.exportToImage(filename, 'image/jpeg', backgroundColor);
+    }
+
+    exportToImage(filename, mimeType, backgroundColor = '#ffffff') {
+        // Calculate the bounding box of all nodes
+        const bounds = this.calculateBounds();
+        const padding = 50;
+        
+        // Create a new SVG with just the content we want to export
+        const exportSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        exportSvg.setAttribute('width', bounds.width + padding * 2);
+        exportSvg.setAttribute('height', bounds.height + padding * 2);
+        exportSvg.setAttribute('viewBox', `0 0 ${bounds.width + padding * 2} ${bounds.height + padding * 2}`);
+        
+        // Add background
+        const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        background.setAttribute('width', '100%');
+        background.setAttribute('height', '100%');
+        background.setAttribute('fill', backgroundColor);
+        exportSvg.appendChild(background);
+        
+        // Create a group to hold all content with proper offset
+        const contentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        contentGroup.setAttribute('transform', `translate(${padding - bounds.minX}, ${padding - bounds.minY})`);
+        
+        // Clone and add all connections
+        this.connections.forEach(connection => {
+            const connectionElement = this.renderConnection(connection);
+            contentGroup.appendChild(connectionElement);
+        });
+        
+        // Clone and add all nodes
+        this.nodes.forEach(node => {
+            const nodeElement = this.renderNode(node);
+            contentGroup.appendChild(nodeElement);
+        });
+        
+        exportSvg.appendChild(contentGroup);
+        
+        // Convert SVG to image
+        const svgData = new XMLSerializer().serializeToString(exportSvg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            canvas.width = bounds.width + padding * 2;
+            canvas.height = bounds.height + padding * 2;
+            
+            // Fill background
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the SVG
+            ctx.drawImage(img, 0, 0);
+            
+            // Convert to desired format and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(svgUrl);
+            }, mimeType, 0.9);
+        };
+        
+        img.src = svgUrl;
+    }
+
+    calculateBounds() {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        this.nodes.forEach(node => {
+            minX = Math.min(minX, node.x);
+            minY = Math.min(minY, node.y);
+            maxX = Math.max(maxX, node.x + node.width);
+            maxY = Math.max(maxY, node.y + node.height);
+        });
+        
+        // If no nodes, use default bounds
+        if (minX === Infinity) {
+            return { minX: 0, minY: 0, width: 800, height: 600 };
+        }
+        
+        return {
+            minX,
+            minY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
+    }
 }
