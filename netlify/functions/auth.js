@@ -97,7 +97,10 @@ exports.handler = async (event, context) => {
         headers: {
           ...corsHeaders,
           'Location': '/',
-          'Set-Cookie': 'demo_user=; Path=/; HttpOnly; Max-Age=0'
+          'Set-Cookie': [
+            'demo_user=; Path=/; HttpOnly; Max-Age=0',
+            'user_token=; Path=/; HttpOnly; Max-Age=0'
+          ]
         },
         body: ''
       };
@@ -105,8 +108,9 @@ exports.handler = async (event, context) => {
 
     // Handle /api/auth/user
     if (httpMethod === 'GET' && (actualPath.includes('auth/user') || (pathParts[0] === 'auth' && pathParts[1] === 'user'))) {
-      // Check for demo user cookie
       const cookies = headers.cookie || '';
+      
+      // Check for demo user cookie
       if (cookies.includes('demo_user=true')) {
         return {
           statusCode: 200,
@@ -120,7 +124,32 @@ exports.handler = async (event, context) => {
         };
       }
       
-      // In production, you'd decode JWT tokens or validate sessions here
+      // Check for authenticated user token
+      const userTokenMatch = cookies.match(/user_token=([^;]+)/);
+      if (userTokenMatch) {
+        try {
+          const userToken = userTokenMatch[1];
+          const userData = JSON.parse(Buffer.from(userToken, 'base64').toString());
+          
+          // Check if token is still valid
+          if (userData.exp && userData.exp > Date.now()) {
+            return {
+              statusCode: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: userData.id,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                profileImageUrl: userData.profileImageUrl
+              })
+            };
+          }
+        } catch (error) {
+          console.error('Token decode error:', error);
+        }
+      }
+      
       return {
         statusCode: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
