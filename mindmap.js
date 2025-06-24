@@ -599,10 +599,11 @@ class MindMap {
         rect.setAttribute('height', node.height);
         rect.setAttribute('fill', node.color);
 
-        // Create text with markdown support
-        this.renderNodeText(nodeGroup, node);
-
         nodeGroup.appendChild(rect);
+        
+        // Create text with markdown support (after rectangle so it appears on top)
+        this.renderNodeText(nodeGroup, node);
+        
         this.canvasGroup.appendChild(nodeGroup);
     }
 
