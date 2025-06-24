@@ -212,26 +212,39 @@ class MindMap {
         tempText.style.fontSize = '14px';
         tempText.style.fontFamily = 'Segoe UI, sans-serif';
 
-        // Handle text wrapping - split long lines
-        const maxLineLength = 20; // Maximum characters per line
+        // More conservative character limit for better text fitting
+        const maxLineLength = 15; // Reduced from 20 to prevent overflow
         const allLines = [];
         
         text.split('\n').forEach(line => {
             if (line.length <= maxLineLength) {
                 allLines.push(line);
             } else {
-                // Wrap long lines
+                // Wrap long lines by words
                 const words = line.split(' ');
                 let currentLine = '';
                 
                 words.forEach(word => {
-                    if ((currentLine + word).length <= maxLineLength) {
-                        currentLine += (currentLine ? ' ' : '') + word;
+                    // Check if adding this word would exceed the limit
+                    const testLine = currentLine ? currentLine + ' ' + word : word;
+                    if (testLine.length <= maxLineLength) {
+                        currentLine = testLine;
                     } else {
+                        // If current line has content, save it and start new line
                         if (currentLine) {
                             allLines.push(currentLine);
+                            currentLine = word;
+                        } else {
+                            // If single word is too long, force break it
+                            if (word.length > maxLineLength) {
+                                for (let i = 0; i < word.length; i += maxLineLength) {
+                                    allLines.push(word.slice(i, i + maxLineLength));
+                                }
+                                currentLine = '';
+                            } else {
+                                currentLine = word;
+                            }
                         }
-                        currentLine = word;
                     }
                 });
                 
@@ -241,6 +254,7 @@ class MindMap {
             }
         });
 
+        // Measure actual text width for each line
         let maxWidth = 0;
         allLines.forEach((line, index) => {
             const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
@@ -259,9 +273,14 @@ class MindMap {
 
         document.body.removeChild(tempSvg);
 
+        // Ensure minimum dimensions and add generous padding
+        const padding = 50; // Increased padding
+        const minWidth = 140; // Increased minimum width
+        const minHeight = 70; // Increased minimum height
+
         return {
-            width: Math.max(maxWidth + 40, 120), // More padding for better appearance
-            height: Math.max(totalHeight + 30, 60), // More padding for better appearance
+            width: Math.max(maxWidth + padding, minWidth),
+            height: Math.max(totalHeight + padding, minHeight),
             wrappedLines: allLines
         };
     }
@@ -536,27 +555,38 @@ class MindMap {
         rect.setAttribute('height', node.height);
         rect.setAttribute('fill', node.color);
 
-        // Create text with proper wrapping
+        // Create text with proper wrapping and positioning
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.classList.add('node-text');
         text.setAttribute('x', node.x);
-        text.setAttribute('y', node.y);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
 
         // Use wrapped lines if available, otherwise calculate them
         let lines = node.wrappedLines;
         if (!lines) {
             const dimensions = this.calculateTextDimensions(node.text);
             lines = dimensions.wrappedLines;
+            // Update node with new dimensions
+            node.width = dimensions.width;
+            node.height = dimensions.height;
+            node.wrappedLines = lines;
         }
 
         if (lines.length === 1) {
+            text.setAttribute('y', node.y);
             text.textContent = lines[0];
         } else {
+            // Center multi-line text vertically
+            const lineHeight = 16.8; // 1.2em of 14px
+            const totalTextHeight = (lines.length - 1) * lineHeight;
+            const startY = node.y - totalTextHeight / 2;
+            
             lines.forEach((line, index) => {
                 const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
                 tspan.textContent = line;
                 tspan.setAttribute('x', node.x);
-                tspan.setAttribute('dy', index === 0 ? '0' : '1.2em');
+                tspan.setAttribute('y', startY + (index * lineHeight));
                 text.appendChild(tspan);
             });
         }
