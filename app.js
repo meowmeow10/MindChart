@@ -6,6 +6,18 @@ class MindMapApp {
         
         this.init();
     }
+    
+    playErrorSound() {
+        try {
+            const audio = new Audio('error.mp3');
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.warn('Fault: Could not play error sound:', error);
+            });
+        } catch (error) {
+            console.warn('Fault: Error sound not available:', error);
+        }
+    }
 
     async init() {
         this.setupEventListeners();
@@ -61,6 +73,7 @@ class MindMapApp {
         document.getElementById('connect-mode').addEventListener('click', () => {
             this.toggleConnectMode();
         });
+        
 
         document.getElementById('help-shortcuts').addEventListener('click', () => {
             this.showShortcutsHelp();
@@ -319,6 +332,7 @@ class MindMapApp {
             this.updateStatus('Fault saving mindmap: ' + error.message);
             this.updateDebugInfo(`Save fault: ${error.message}`);
             console.error('Save error:', error);
+            this.playErrorSound();
         }
     }
 
@@ -336,6 +350,7 @@ class MindMapApp {
                 this.updateStatus('Fault loading mindmap: ' + error.message);
                 this.updateDebugInfo(`Load Fault: ${error.message}`);
                 console.error('Load error:', error);
+                this.playErrorSound();
             }
         };
         reader.readAsText(file);
