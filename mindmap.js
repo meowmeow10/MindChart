@@ -326,6 +326,14 @@ class MindMap {
         const node = this.nodes.get(nodeId);
         if (!node) return false;
 
+        // If text is being updated, recalculate dimensions
+        if (updates.text !== undefined) {
+            const dimensions = this.calculateTextDimensions(updates.text);
+            updates.width = dimensions.width;
+            updates.height = dimensions.height;
+            updates.wrappedLines = dimensions.wrappedLines;
+        }
+
         Object.assign(node, updates);
         this.renderNode(node);
         this.renderConnections();
