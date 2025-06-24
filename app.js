@@ -3,19 +3,31 @@ class MindMapApp {
         this.currentPage = 'landing';
         this.mindMap = null;
         this.xmlHandler = new XMLHandler();
-        
+
         this.init();
     }
-    
+
     playErrorSound() {
         try {
             const audio = new Audio('error.mp3');
             audio.volume = 0.5; // Set volume to 50%
             audio.play().catch(error => {
-                console.warn('Fault: Could not play error sound:', error);
+                console.warn('Could not play error sound:', error);
             });
         } catch (error) {
-            console.warn('Fault: Error sound not available:', error);
+            console.warn('Error sound not available:', error);
+        }
+    }
+
+    playCorrectSound() {
+        try {
+            const audio = new Audio('correct.mp3');
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.warn('Could not play correct sound:', error);
+            });
+        } catch (error) {
+            console.warn('Correct sound not available:', error);
         }
     }
 
@@ -73,7 +85,7 @@ class MindMapApp {
         document.getElementById('connect-mode').addEventListener('click', () => {
             this.toggleConnectMode();
         });
-        
+
 
         document.getElementById('help-shortcuts').addEventListener('click', () => {
             this.showShortcutsHelp();
@@ -160,7 +172,7 @@ class MindMapApp {
         this.isAuthenticated = false;
         this.currentMindMapId = null;
         this.currentMindMapTitle = null;
-        
+
         // Local storage settings
         this.autoSaveInterval = null;
         this.lastSaveTime = null;
@@ -197,7 +209,7 @@ class MindMapApp {
         // Modal controls with error handling
         const saveNodeBtn = document.getElementById('save-node');
         const cancelEditBtn = document.getElementById('cancel-edit');
-        
+
         if (saveNodeBtn) {
             saveNodeBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -237,16 +249,16 @@ class MindMapApp {
         // Prevent default drag behavior on the page
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => e.preventDefault());
-        
+
         // Add local storage menu items
         document.getElementById('save-local').addEventListener('click', () => {
             this.saveToLocalStorage();
         });
-        
+
         document.getElementById('load-local').addEventListener('click', () => {
             this.showLocalStorageModal();
         });
-        
+
         document.getElementById('clear-local').addEventListener('click', () => {
             this.clearLocalStorage();
         });
@@ -262,7 +274,7 @@ class MindMapApp {
         document.getElementById('landing-page').classList.add('hidden');
         document.getElementById('app-page').classList.remove('hidden');
         this.currentPage = 'app';
-        
+
         if (!this.mindMap) {
             this.mindMap = new MindMap('mindmap-canvas');
             this.setupMindMapEvents();
@@ -315,9 +327,10 @@ class MindMapApp {
     }
 
     newMindMap() {
-        if (confirm('Create a new mindmap? This will clear the current one.')) {
+        if (confirm('Create a new mind map? This will clear the current one.')) {
             this.mindMap.clear();
             this.updateStatus('New mindmap created');
+            this.playCorrectSound();
         }
     }
 
@@ -328,6 +341,7 @@ class MindMapApp {
             this.downloadFile(xmlContent, 'mindmap.xml', 'application/xml');
             this.updateStatus('Mindmap saved successfully');
             this.updateDebugInfo(`Saved: ${data.nodes.length} nodes, ${data.connections.length} connections`);
+            this.playCorrectSound();
         } catch (error) {
             this.updateStatus('Fault saving mindmap: ' + error.message);
             this.updateDebugInfo(`Save fault: ${error.message}`);
@@ -346,6 +360,7 @@ class MindMapApp {
                 this.mindMap.loadData(data);
                 this.updateStatus(`Mindmap loaded: ${file.name}`);
                 this.updateDebugInfo(`Loaded: ${data.nodes.length} nodes, ${data.connections.length} connections from ${file.name}`);
+                this.playCorrectSound();
             } catch (error) {
                 this.updateStatus('Fault loading mindmap: ' + error.message);
                 this.updateDebugInfo(`Load Fault: ${error.message}`);
@@ -373,7 +388,7 @@ class MindMapApp {
     editNode(node) {
         console.log('Editing node:', node);
         this.editingNode = node;
-        
+
         const modal = document.getElementById('node-editor');
         const textArea = document.getElementById('node-text');
         const colorInput = document.getElementById('node-color');
@@ -385,10 +400,10 @@ class MindMapApp {
 
         textArea.value = node.text || '';
         colorInput.value = node.color || '#e3f2fd';
-        
+
         modal.classList.remove('hidden');
         modal.classList.add('fade-in');
-        
+
         // Focus and select text after modal appears
         setTimeout(() => {
             textArea.focus();
@@ -554,7 +569,7 @@ class MindMapApp {
 
     createFromTemplate(templateType) {
         this.hideTemplatesModal();
-        
+
         if (this.mindMap.nodes.size > 1 || (this.mindMap.nodes.size === 1 && Array.from(this.mindMap.nodes.values())[0].text !== 'Central Idea')) {
             if (!confirm('Create new mind map from template? This will replace the current mind map.')) {
                 return;
@@ -562,7 +577,7 @@ class MindMapApp {
         }
 
         this.mindMap.clear();
-        
+
         const template = this.getTemplate(templateType);
         if (template) {
             this.mindMap.loadData(template);
@@ -845,7 +860,7 @@ class MindMapApp {
 
     showAuthModal() {
         console.log('showAuthModal called, authenticated:', this.isAuthenticated);
-        
+
         if (this.isAuthenticated) {
             // Logout
             window.location.href = '/api/logout';
@@ -950,53 +965,54 @@ class MindMapApp {
         try {
             const data = this.mindMap.getData();
             const timestamp = new Date().toISOString();
-            
+
             if (!name) {
                 name = prompt('Enter a name for your mind map:', 'My Mind Map ' + new Date().toLocaleDateString());
                 if (!name) return;
             }
-            
+
             const mindMapData = {
                 name,
                 data,
                 timestamp,
                 id: Date.now().toString()
             };
-            
+
             // Get existing saved mind maps
             const savedMaps = this.getSavedMindMaps();
             savedMaps[mindMapData.id] = mindMapData;
-            
+
             localStorage.setItem('mindmaps', JSON.stringify(savedMaps));
             this.lastSaveTime = Date.now();
             this.updateStatus(`Saved locally: ${name}`);
-            
+            this.playCorrectSound();
+
         } catch (error) {
             console.error('Fault saving to local storage:', error);
             this.updateStatus('Fault: Failed to save locally');
         }
     }
-    
+
     autoSaveToLocalStorage() {
         try {
             const data = this.mindMap.getData();
             const timestamp = new Date().toISOString();
-            
+
             const autoSaveData = {
                 name: 'Auto-save',
                 data,
                 timestamp,
                 isAutoSave: true
             };
-            
+
             localStorage.setItem('mindmap_autosave', JSON.stringify(autoSaveData));
             this.lastSaveTime = Date.now();
-            
+
         } catch (error) {
             console.error('Error auto-saving:', error);
         }
     }
-    
+
     loadFromLocalStorage() {
         try {
             // Check for auto-save first
@@ -1007,7 +1023,7 @@ class MindMapApp {
                 const saveTime = new Date(autoSaveData.timestamp);
                 const now = new Date();
                 const hoursDiff = (now - saveTime) / (1000 * 60 * 60);
-                
+
                 if (hoursDiff < 24 && autoSaveData.data.nodes.length > 1) {
                     this.mindMap.loadData(autoSaveData.data);
                     this.updateStatus('Restored from auto-save');
@@ -1018,7 +1034,7 @@ class MindMapApp {
             console.error('Fault loading from local storage:', error);
         }
     }
-    
+
     getSavedMindMaps() {
         try {
             const saved = localStorage.getItem('mindmaps');
@@ -1028,19 +1044,19 @@ class MindMapApp {
             return {};
         }
     }
-    
+
     showLocalStorageModal() {
         const savedMaps = this.getSavedMindMaps();
         const mapsList = Object.values(savedMaps);
-        
+
         if (mapsList.length === 0) {
             this.updateStatus('Fault: No saved mindmaps found');
             return;
         }
-        
+
         // Create modal content
         let modalContent = '<div class="local-storage-modal"><h3>Load Saved Mind Map</h3><div class="saved-maps-list">';
-        
+
         mapsList.forEach(map => {
             const date = new Date(map.timestamp).toLocaleString();
             modalContent += `
@@ -1056,15 +1072,15 @@ class MindMapApp {
                 </div>
             `;
         });
-        
+
         modalContent += '</div><button id="close-local-modal" class="btn">Close</button></div>';
-        
+
         // Show modal
         const modal = document.createElement('div');
         modal.className = 'modal fade-in';
         modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
         document.body.appendChild(modal);
-        
+
         // Add event listeners
         modal.addEventListener('click', (e) => {
             if (e.target.classList.contains('load-map')) {
@@ -1081,22 +1097,23 @@ class MindMapApp {
             }
         });
     }
-    
+
     loadSavedMindMap(id) {
         try {
             const savedMaps = this.getSavedMindMaps();
             const mindMap = savedMaps[id];
-            
+
             if (mindMap) {
                 this.mindMap.loadData(mindMap.data);
                 this.updateStatus(`Loaded: ${mindMap.name}`);
+                this.playCorrectSound();
             }
         } catch (error) {
             console.error('Fault loading saved mind map:', error);
             this.updateStatus('Fault: Failed to load mind map');
         }
     }
-    
+
     deleteSavedMindMap(id) {
         try {
             const savedMaps = this.getSavedMindMaps();
@@ -1108,7 +1125,7 @@ class MindMapApp {
             this.updateStatus('Fault: Failed to delete mind map');
         }
     }
-    
+
     clearLocalStorage() {
         if (confirm('Are you sure you want to clear all locally saved mindmaps? This cannot be undone.')) {
             localStorage.removeItem('mindmaps');
@@ -1116,7 +1133,7 @@ class MindMapApp {
             this.updateStatus('Local storage cleared');
         }
     }
-    
+
     startAutoSave() {
         // Auto-save every 30 seconds if there are changes
         this.autoSaveInterval = setInterval(() => {
@@ -1126,7 +1143,7 @@ class MindMapApp {
             }
         }, 30000); // 30 seconds
     }
-    
+
     stopAutoSave() {
         if (this.autoSaveInterval) {
             clearInterval(this.autoSaveInterval);
@@ -1146,7 +1163,7 @@ class MindMapApp {
             saveCloudBtn.disabled = false;
             shareBtn.disabled = false;
             collaborateBtn.disabled = false;
-            
+
             this.updateStatus(`Logged in as ${this.currentUser.firstName || this.currentUser.email}`);
         } else {
             loginBtn.textContent = 'Login';
@@ -1215,7 +1232,7 @@ class MindMapApp {
         // Generate share code (this would come from the server)
         const shareCode = 'DEMO-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         document.getElementById('share-code').value = shareCode;
-        
+
         const modal = document.getElementById('share-modal');
         modal.classList.remove('hidden');
         modal.classList.add('fade-in');
@@ -1263,7 +1280,7 @@ class MindMapApp {
             }
 
             const mindMapInfo = await response.json();
-            
+
             // Initialize collaboration
             if (!this.collaboration) {
                 this.collaboration = new CollaborationClient(this);
@@ -1272,7 +1289,7 @@ class MindMapApp {
             await this.collaboration.connect(mindMapInfo.id, this.currentUser.id, roomCode);
             this.hideJoinRoomModal();
             this.updateStatus(`Joined collaboration: ${mindMapInfo.title}`);
-            
+
         } catch (error) {
             console.error('Fault joining room:', error);
             this.updateStatus('Fault: Failed to join collaboration room');
@@ -1330,7 +1347,7 @@ class MindMapApp {
 
     loadTemplate(templateType) {
         this.hideTemplates();
-        
+
         if (this.mindMap.nodes.size > 1) {
             if (!confirm('Load template? This will replace your current mind map.')) {
                 return;
@@ -1340,6 +1357,7 @@ class MindMapApp {
         const templateData = this.getTemplateData(templateType);
         this.mindMap.loadData(templateData);
         this.updateStatus(`Template loaded: ${this.getTemplateName(templateType)}`);
+        this.playCorrectSound();
         this.updateDebugInfo(`Loaded template: ${templateType}`);
     }
 
@@ -1366,7 +1384,7 @@ class MindMapApp {
                 connections: [],
                 view: { zoom: 1, panX: 0, panY: 0 }
             },
-            
+
             project: {
                 nodes: [
                     { id: 1, x: 400, y: 300, text: 'Project Name', color: '#2196f3', width: 140, height: 60 },

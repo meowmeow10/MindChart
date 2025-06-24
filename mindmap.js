@@ -212,12 +212,37 @@ class MindMap {
         tempText.style.fontSize = '14px';
         tempText.style.fontFamily = 'Segoe UI, sans-serif';
 
-        // Handle multi-line text
-        const lines = text.split('\n');
-        let maxWidth = 0;
-        let totalHeight = 0;
+        // Handle text wrapping - split long lines
+        const maxLineLength = 20; // Maximum characters per line
+        const allLines = [];
+        
+        text.split('\n').forEach(line => {
+            if (line.length <= maxLineLength) {
+                allLines.push(line);
+            } else {
+                // Wrap long lines
+                const words = line.split(' ');
+                let currentLine = '';
+                
+                words.forEach(word => {
+                    if ((currentLine + word).length <= maxLineLength) {
+                        currentLine += (currentLine ? ' ' : '') + word;
+                    } else {
+                        if (currentLine) {
+                            allLines.push(currentLine);
+                        }
+                        currentLine = word;
+                    }
+                });
+                
+                if (currentLine) {
+                    allLines.push(currentLine);
+                }
+            }
+        });
 
-        lines.forEach((line, index) => {
+        let maxWidth = 0;
+        allLines.forEach((line, index) => {
             const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
             tspan.textContent = line;
             tspan.setAttribute('x', '0');
@@ -230,13 +255,14 @@ class MindMap {
 
         const bbox = tempText.getBBox();
         maxWidth = bbox.width;
-        totalHeight = bbox.height;
+        const totalHeight = bbox.height;
 
         document.body.removeChild(tempSvg);
 
         return {
-            width: Math.max(maxWidth + 30, 100), // Add more padding and increase minimum width
-            height: Math.max(totalHeight + 20, 50) // Add padding and minimum height
+            width: Math.max(maxWidth + 40, 120), // More padding for better appearance
+            height: Math.max(totalHeight + 30, 60), // More padding for better appearance
+            wrappedLines: allLines
         };
     }
 
@@ -510,16 +536,21 @@ class MindMap {
         rect.setAttribute('height', node.height);
         rect.setAttribute('fill', node.color);
 
-        // Create text
+        // Create text with proper wrapping
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.classList.add('node-text');
         text.setAttribute('x', node.x);
         text.setAttribute('y', node.y);
 
-        // Handle multi-line text
-        const lines = node.text.split('\n');
+        // Use wrapped lines if available, otherwise calculate them
+        let lines = node.wrappedLines;
+        if (!lines) {
+            const dimensions = this.calculateTextDimensions(node.text);
+            lines = dimensions.wrappedLines;
+        }
+
         if (lines.length === 1) {
-            text.textContent = node.text;
+            text.textContent = lines[0];
         } else {
             lines.forEach((line, index) => {
                 const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
@@ -898,6 +929,7 @@ class MindMap {
             node.text = newText;
             node.width = dimensions.width;
             node.height = dimensions.height;
+            node.wrappedLines = dimensions.wrappedLines;
             this.renderNode(node);
             this.emit('statusUpdate', `Updated node ${nodeId} text`);
         }
