@@ -392,6 +392,7 @@ class MindMapApp {
             this.updateStatus('Node updated');
         } else {
             this.updateStatus('Fault: Node text cannot be empty');
+            this.playErrorSound();
             return;
         }
 

@@ -324,7 +324,7 @@ class MindMap {
 
         // Don't delete if it's the last node
         if (this.nodes.size <= 1) {
-            this.emit('statusUpdate', 'Cannot delete the last node');
+            this.emit('statusUpdate', 'Fault: Cannot delete the last node');
             this.playErrorSound();
             return false;
         }
