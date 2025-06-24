@@ -199,7 +199,43 @@ class MindMap {
         this.handleMouseUp({});
     }
 
+    parseMarkdown(text) {
+        // Simple markdown parser for basic formatting
+        if (typeof marked !== 'undefined') {
+            try {
+                const html = marked.parse(text, { 
+                    breaks: true, 
+                    gfm: true,
+                    sanitize: false 
+                });
+                return this.htmlToPlainText(html);
+            } catch (error) {
+                console.warn('Markdown parsing failed, using plain text:', error);
+                return text;
+            }
+        }
+        return text;
+    }
+
+    htmlToPlainText(html) {
+        // Convert basic HTML tags to plain text for dimension calculation
+        return html
+            .replace(/<strong>|<b>/g, '')
+            .replace(/<\/strong>|<\/b>/g, '')
+            .replace(/<em>|<i>/g, '')
+            .replace(/<\/em>|<\/i>/g, '')
+            .replace(/<code>/g, '')
+            .replace(/<\/code>/g, '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&');
+    }
+
     calculateTextDimensions(text) {
+        // Parse markdown for display but use plain text for calculations
+        const plainText = this.htmlToPlainText(this.parseMarkdown(text));
+        
         // Create temporary SVG text element to measure dimensions
         const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         tempSvg.style.position = 'absolute';
@@ -216,7 +252,7 @@ class MindMap {
         const maxLineLength = 15; // Reduced from 20 to prevent overflow
         const allLines = [];
         
-        text.split('\n').forEach(line => {
+        plainText.split('\n').forEach(line => {
             if (line.length <= maxLineLength) {
                 allLines.push(line);
             } else {
@@ -563,13 +599,14 @@ class MindMap {
         rect.setAttribute('height', node.height);
         rect.setAttribute('fill', node.color);
 
-        // Create text with proper wrapping and positioning
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.classList.add('node-text');
-        text.setAttribute('x', node.x);
-        text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('dominant-baseline', 'middle');
+        // Create text with markdown support
+        this.renderNodeText(nodeGroup, node);
 
+        nodeGroup.appendChild(rect);
+        this.canvasGroup.appendChild(nodeGroup);
+    }
+
+    renderNodeText(nodeGroup, node) {
         // Use wrapped lines if available, otherwise calculate them
         let lines = node.wrappedLines;
         if (!lines) {
@@ -582,8 +619,7 @@ class MindMap {
         }
 
         if (lines.length === 1) {
-            text.setAttribute('y', node.y);
-            text.textContent = lines[0];
+            this.renderFormattedText(nodeGroup, node, lines[0], node.x, node.y);
         } else {
             // Center multi-line text vertically
             const lineHeight = 16.8; // 1.2em of 14px
@@ -591,17 +627,137 @@ class MindMap {
             const startY = node.y - totalTextHeight / 2;
             
             lines.forEach((line, index) => {
-                const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                tspan.textContent = line;
-                tspan.setAttribute('x', node.x);
-                tspan.setAttribute('y', startY + (index * lineHeight));
-                text.appendChild(tspan);
+                const y = startY + (index * lineHeight);
+                this.renderFormattedText(nodeGroup, node, line, node.x, y);
             });
         }
+    }
 
-        nodeGroup.appendChild(rect);
-        nodeGroup.appendChild(text);
-        this.canvasGroup.appendChild(nodeGroup);
+    renderFormattedText(nodeGroup, node, text, x, y) {
+        // Check if text contains markdown-style formatting
+        const hasFormatting = /(\*\*|__|\*|_|`|~~)/.test(text);
+        
+        if (!hasFormatting) {
+            // Simple text, no formatting
+            const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textElement.classList.add('node-text');
+            textElement.setAttribute('x', x);
+            textElement.setAttribute('y', y);
+            textElement.setAttribute('text-anchor', 'middle');
+            textElement.setAttribute('dominant-baseline', 'middle');
+            textElement.textContent = text;
+            nodeGroup.appendChild(textElement);
+            return;
+        }
+
+        // Parse and render formatted text
+        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textElement.classList.add('node-text');
+        textElement.setAttribute('x', x);
+        textElement.setAttribute('y', y);
+        textElement.setAttribute('text-anchor', 'middle');
+        textElement.setAttribute('dominant-baseline', 'middle');
+
+        // Simple markdown parsing for common formats
+        const parts = this.parseTextFormatting(text);
+        let currentX = x - (this.getTextWidth(text) / 2); // Start from left edge for positioning
+
+        parts.forEach(part => {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.textContent = part.text;
+            tspan.setAttribute('x', currentX);
+            
+            // Apply formatting
+            if (part.bold) {
+                tspan.setAttribute('font-weight', 'bold');
+            }
+            if (part.italic) {
+                tspan.setAttribute('font-style', 'italic');
+            }
+            if (part.code) {
+                tspan.setAttribute('font-family', 'monospace');
+                tspan.setAttribute('fill', '#d63384');
+            }
+            if (part.strikethrough) {
+                tspan.setAttribute('text-decoration', 'line-through');
+            }
+
+            textElement.appendChild(tspan);
+            currentX += this.getTextWidth(part.text);
+        });
+
+        nodeGroup.appendChild(textElement);
+    }
+
+    parseTextFormatting(text) {
+        const parts = [];
+        let currentPos = 0;
+        
+        // Simple regex patterns for basic markdown
+        const patterns = [
+            { regex: /\*\*(.*?)\*\*/g, type: 'bold' },
+            { regex: /__(.*?)__/g, type: 'bold' },
+            { regex: /\*(.*?)\*/g, type: 'italic' },
+            { regex: /_(.*?)_/g, type: 'italic' },
+            { regex: /`(.*?)`/g, type: 'code' },
+            { regex: /~~(.*?)~~/g, type: 'strikethrough' }
+        ];
+
+        const matches = [];
+        patterns.forEach(pattern => {
+            let match;
+            while ((match = pattern.regex.exec(text)) !== null) {
+                matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    text: match[1],
+                    type: pattern.type,
+                    original: match[0]
+                });
+            }
+        });
+
+        // Sort matches by position
+        matches.sort((a, b) => a.start - b.start);
+
+        // Build parts array
+        let lastEnd = 0;
+        matches.forEach(match => {
+            // Add text before match
+            if (match.start > lastEnd) {
+                const plainText = text.substring(lastEnd, match.start);
+                if (plainText) {
+                    parts.push({ text: plainText });
+                }
+            }
+
+            // Add formatted text
+            const part = { text: match.text };
+            part[match.type] = true;
+            parts.push(part);
+
+            lastEnd = match.end;
+        });
+
+        // Add remaining text
+        if (lastEnd < text.length) {
+            const remainingText = text.substring(lastEnd);
+            if (remainingText) {
+                parts.push({ text: remainingText });
+            }
+        }
+
+        // If no matches found, return the whole text
+        if (parts.length === 0) {
+            parts.push({ text: text });
+        }
+
+        return parts;
+    }
+
+    getTextWidth(text) {
+        // Simple approximation - could be improved with actual measurement
+        return text.length * 8; // Rough estimate based on font size
     }
 
     renderConnection(connection) {

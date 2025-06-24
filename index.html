@@ -202,9 +202,18 @@
         <div id="node-editor" class="modal hidden">
             <div class="modal-content">
                 <h3>Edit Node</h3>
+                <div class="markdown-help">
+                    <h4>💡 Markdown Support</h4>
+                    <div class="markdown-examples">
+                        <span>**bold**</span><span>bold</span>
+                        <span>*italic*</span><span>italic</span>
+                        <span>`code`</span><span>code</span>
+                        <span>~~strike~~</span><span>strike</span>
+                    </div>
+                </div>
                 <textarea
                     id="node-text"
-                    placeholder="Enter node text..."
+                    placeholder="Enter node text... You can use **bold**, *italic*, `code`, and ~~strikethrough~~ formatting!"
                     rows="3"
                 ></textarea>
                 <div class="color-picker">
@@ -506,6 +515,8 @@
         </div>
 
         <script src="xmlhandler.js"></script>
+        <!-- Markdown parsing library -->
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="mindmap.js"></script>
         <!-- Pusher for real-time collaboration -->
         <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
