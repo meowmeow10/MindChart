@@ -31,6 +31,21 @@ class MindMapApp {
         }
     }
 
+    playBinSound() {
+        try {
+            const audio = new Audio('bin.wav');
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.warn('Could not play correct sound:', error);
+            });
+        } catch (error) {
+            console.warn('Correct sound not available:', error);
+        }
+    }
+
+    
+    
+
     async init() {
         this.setupEventListeners();
         this.showLandingPage();
@@ -80,6 +95,7 @@ class MindMapApp {
 
         document.getElementById('delete-node').addEventListener('click', () => {
             this.deleteSelectedNode();
+            this.playBinSound()
         });
 
         document.getElementById('connect-mode').addEventListener('click', () => {
@@ -1120,6 +1136,7 @@ class MindMapApp {
             delete savedMaps[id];
             localStorage.setItem('mindmaps', JSON.stringify(savedMaps));
             this.updateStatus('Mindmap deleted');
+            this.playBinSound()
         } catch (error) {
             console.error('Fault deleting saved mind map:', error);
             this.updateStatus('Fault: Failed to delete mind map');
@@ -1131,6 +1148,7 @@ class MindMapApp {
             localStorage.removeItem('mindmaps');
             localStorage.removeItem('mindmap_autosave');
             this.updateStatus('Local storage cleared');
+            this.playBinSound()
         }
     }
 
