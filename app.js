@@ -43,6 +43,18 @@ class MindMapApp {
         }
     }
 
+    playBeepSound() {
+        try {
+            const audio = new Audio('clickbeep.mp3');
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.warn('Could not play correct sound:', error);
+            });
+        } catch (error) {
+            console.warn('Correct sound not available:', error);
+        }
+    }
+
     
     
 
@@ -100,6 +112,7 @@ class MindMapApp {
 
         document.getElementById('connect-mode').addEventListener('click', () => {
             this.toggleConnectMode();
+            this.playBeepSound();
         });
 
 
@@ -310,6 +323,7 @@ class MindMapApp {
         this.mindMap.on('nodeDoubleClick', (node) => {
             this.editNode(node);
             this.updateDebugInfo(`Editing: Node ${node.id} - "${node.text}"`);
+            this.playBeepSound();
         });
 
         this.mindMap.on('statusUpdate', (message) => {
@@ -326,6 +340,7 @@ class MindMapApp {
 
         this.mindMap.on('connectionModeChange', (isActive) => {
             const btn = document.getElementById('connect-mode');
+            this.playBeepSound();
             if (isActive) {
                 btn.classList.add('active');
                 btn.textContent = 'Exit Connect';
@@ -436,6 +451,7 @@ class MindMapApp {
         if (text) {
             this.mindMap.updateNode(this.editingNode.id, { text, color });
             this.updateStatus('Node updated');
+            this.playBeepSound();
         } else {
             this.updateStatus('Fault: Node text cannot be empty');
             this.playErrorSound();
@@ -557,6 +573,7 @@ class MindMapApp {
 
     toggleConnectMode() {
         this.mindMap.toggleConnectMode();
+        this.playBeepSound();
     }
 
     showShortcutsHelp() {
